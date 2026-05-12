@@ -1,4 +1,4 @@
-﻿# FinVault ΓÇö System Architecture
+# FinVault — System Architecture
 
 > **FinVault** is a Smart-Card Budgeting System designed as a financial firewall.  
 > It enforces disciplined spending by linking virtual smart cards to pre-defined budget envelopes,  
@@ -26,7 +26,7 @@
 | Framework | Spring Boot | 4.0.x |
 | Persistence | Spring Data JPA + Hibernate ORM | 7.x |
 | Database | MySQL | 8.0 |
-| Security | Spring Security + JWT | ΓÇö |
+| Security | Spring Security + JWT | — |
 | Build Tool | Maven (via Maven Wrapper) | 3.x |
 
 ### Frontend
@@ -56,44 +56,44 @@ exclusively over a versioned REST API. This separation of concerns means either 
 can be developed, tested, scaled, or deployed independently.
 
 ```
-ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ
-Γöé                         CLIENT TIER                             Γöé
-Γöé                                                                 Γöé
-Γöé   ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ   Γöé
-Γöé   Γöé          Angular 21  (localhost:4200)                   Γöé   Γöé
-Γöé   Γöé                                                         Γöé   Γöé
-Γöé   Γöé   ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ   ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ   ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ   Γöé   Γöé
-Γöé   Γöé   ΓöéComponentsΓöé   Γöé Services Γöé   Γöé  Angular Router  Γöé   Γöé   Γöé
-Γöé   Γöé   ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ   ΓööΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ   ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ   Γöé   Γöé
-Γöé   ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ Γöé ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ   Γöé
-Γöé                            Γöé  HTTP/JSON (REST)                 Γöé
-Γöé                            Γöé  Authorization: Bearer <JWT>      Γöé
-ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöéΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ
-                             Γöé
-ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöéΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ
-Γöé                         SERVER TIER                             Γöé
-Γöé                                                                 Γöé
-Γöé   ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ   Γöé
-Γöé   Γöé         Spring Boot 4  (localhost:8080)                 Γöé   Γöé
-Γöé   Γöé                                                         Γöé   Γöé
-Γöé   Γöé   ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ  ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ  ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ  Γöé   Γöé
-Γöé   Γöé   Γöé  Controllers ΓöéΓåÆ Γöé Services  ΓöéΓåÆ Γöé  Repositories  Γöé  Γöé   Γöé
-Γöé   Γöé   Γöé  (REST API)  Γöé  Γöé(Business) Γöé  Γöé  (Spring Data) Γöé  Γöé   Γöé
-Γöé   Γöé   ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ  ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ  ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ  Γöé   Γöé
-Γöé   Γöé                                             Γöé JPA/SQL   Γöé   Γöé
-Γöé   Γöé   ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ Γöé ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ  Γöé   Γöé
-Γöé   Γöé   Γöé        Spring Security (JWT Filter)     Γöé        Γöé  Γöé   Γöé
-Γöé   Γöé   ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöéΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ  Γöé   Γöé
-Γöé   ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöéΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ   Γöé
-Γöé                                                 Γöé               Γöé
-Γöé   ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöéΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ   Γöé
-Γöé   Γöé             MySQL 8.0  (port 3306)          Γöé           Γöé   Γöé
-Γöé   Γöé             Database: finvault_db           Γåô           Γöé   Γöé
-Γöé   Γöé   ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ  ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ  ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ Γöé   Γöé
-Γöé   Γöé   Γöé  users   Γöé  Γöé  cards   Γöé  Γöé     transactions     Γöé Γöé   Γöé
-Γöé   Γöé   ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ  ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ  ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ Γöé   Γöé
-Γöé   ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ   Γöé
-ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ
+┌─────────────────────────────────────────────────────────────────┐
+│                         CLIENT TIER                             │
+│                                                                 │
+│   ┌─────────────────────────────────────────────────────────┐   │
+│   │          Angular 21  (localhost:4200)                   │   │
+│   │                                                         │   │
+│   │   ┌──────────┐   ┌──────────┐   ┌──────────────────┐   │   │
+│   │   │Components│   │ Services │   │  Angular Router  │   │   │
+│   │   └──────────┘   └────┬─────┘   └──────────────────┘   │   │
+│   └────────────────────── │ ──────────────────────────────┘   │
+│                            │  HTTP/JSON (REST)                 │
+│                            │  Authorization: Bearer <JWT>      │
+└────────────────────────────│────────────────────────────────────┘
+                             │
+┌────────────────────────────│────────────────────────────────────┐
+│                         SERVER TIER                             │
+│                                                                 │
+│   ┌─────────────────────────────────────────────────────────┐   │
+│   │         Spring Boot 4  (localhost:8080)                 │   │
+│   │                                                         │   │
+│   │   ┌──────────────┐  ┌───────────┐  ┌────────────────┐  │   │
+│   │   │  Controllers │→ │ Services  │→ │  Repositories  │  │   │
+│   │   │  (REST API)  │  │(Business) │  │  (Spring Data) │  │   │
+│   │   └──────────────┘  └───────────┘  └───────┬────────┘  │   │
+│   │                                             │ JPA/SQL   │   │
+│   │   ┌──────────────────────────────────────── │ ───────┐  │   │
+│   │   │        Spring Security (JWT Filter)     │        │  │   │
+│   │   └─────────────────────────────────────────│────────┘  │   │
+│   └─────────────────────────────────────────────│───────────┘   │
+│                                                 │               │
+│   ┌─────────────────────────────────────────────│───────────┐   │
+│   │             MySQL 8.0  (port 3306)          │           │   │
+│   │             Database: finvault_db           ↓           │   │
+│   │   ┌──────────┐  ┌──────────┐  ┌──────────────────────┐ │   │
+│   │   │  users   │  │  cards   │  │     transactions     │ │   │
+│   │   └──────────┘  └──────────┘  └──────────────────────┘ │   │
+│   └─────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -114,46 +114,46 @@ can be developed, tested, scaled, or deployed independently.
 ## Directory Structure
 
 ```
-FinVault/                                     ΓåÉ Monorepo root
-Γöé
-Γö£ΓöÇΓöÇ backend/                                  ΓåÉ Spring Boot application
-Γöé   Γö£ΓöÇΓöÇ src/
-Γöé   Γöé   Γö£ΓöÇΓöÇ main/
-Γöé   Γöé   Γöé   Γö£ΓöÇΓöÇ java/com/finvault/backend/
-Γöé   Γöé   Γöé   Γöé   Γö£ΓöÇΓöÇ BackendApplication.java   ΓåÉ Main entry point (@SpringBootApplication)
-Γöé   Γöé   Γöé   Γöé   Γö£ΓöÇΓöÇ controller/               ΓåÉ REST controllers (to be added)
-Γöé   Γöé   Γöé   Γöé   Γö£ΓöÇΓöÇ service/                  ΓåÉ Business logic layer (to be added)
-Γöé   Γöé   Γöé   Γöé   Γö£ΓöÇΓöÇ repository/               ΓåÉ Spring Data JPA interfaces (to be added)
-Γöé   Γöé   Γöé   Γöé   Γö£ΓöÇΓöÇ model/                    ΓåÉ JPA @Entity classes (to be added)
-Γöé   Γöé   Γöé   Γöé   ΓööΓöÇΓöÇ security/                 ΓåÉ JWT filter, config (to be added)
-Γöé   Γöé   Γöé   ΓööΓöÇΓöÇ resources/
-Γöé   Γöé   Γöé       ΓööΓöÇΓöÇ application.properties    ΓåÉ MySQL, JPA, server config
-Γöé   Γöé   ΓööΓöÇΓöÇ test/
-Γöé   Γöé       ΓööΓöÇΓöÇ java/com/finvault/backend/
-Γöé   Γöé           ΓööΓöÇΓöÇ BackendApplicationTests.java
-Γöé   Γö£ΓöÇΓöÇ pom.xml                               ΓåÉ Maven dependencies & build config
-Γöé   ΓööΓöÇΓöÇ mvnw / mvnw.cmd                       ΓåÉ Maven wrapper scripts
-Γöé
-Γö£ΓöÇΓöÇ frontend/                                 ΓåÉ Angular application
-Γöé   Γö£ΓöÇΓöÇ src/
-Γöé   Γöé   Γö£ΓöÇΓöÇ app/
-Γöé   Γöé   Γöé   Γö£ΓöÇΓöÇ app.ts                        ΓåÉ Root component
-Γöé   Γöé   Γöé   Γö£ΓöÇΓöÇ app.html                      ΓåÉ Root template
-Γöé   Γöé   Γöé   Γö£ΓöÇΓöÇ app.routes.ts                 ΓåÉ Application routing
-Γöé   Γöé   Γöé   ΓööΓöÇΓöÇ app.config.ts                 ΓåÉ App-level providers
-Γöé   Γöé   Γö£ΓöÇΓöÇ styles.css                        ΓåÉ Global styles (post-Bootstrap overrides)
-Γöé   Γöé   Γö£ΓöÇΓöÇ index.html                        ΓåÉ SPA shell
-Γöé   Γöé   ΓööΓöÇΓöÇ main.ts                           ΓåÉ Angular bootstrap entry point
-Γöé   Γö£ΓöÇΓöÇ angular.json                          ΓåÉ CLI config (Bootstrap registered here)
-Γöé   Γö£ΓöÇΓöÇ package.json                          ΓåÉ npm dependencies
-Γöé   ΓööΓöÇΓöÇ tsconfig.json                         ΓåÉ TypeScript compiler config
-Γöé
-Γö£ΓöÇΓöÇ docs/
-Γöé   ΓööΓöÇΓöÇ Architecture.md                       ΓåÉ This file
-Γöé
-Γö£ΓöÇΓöÇ .github/                                  ΓåÉ GitHub Actions CI/CD workflows (to be added)
-Γö£ΓöÇΓöÇ .gitignore
-ΓööΓöÇΓöÇ README.md
+FinVault/                                     ← Monorepo root
+│
+├── backend/                                  ← Spring Boot application
+│   ├── src/
+│   │   ├── main/
+│   │   │   ├── java/com/finvault/backend/
+│   │   │   │   ├── BackendApplication.java   ← Main entry point (@SpringBootApplication)
+│   │   │   │   ├── controller/               ← REST controllers (to be added)
+│   │   │   │   ├── service/                  ← Business logic layer (to be added)
+│   │   │   │   ├── repository/               ← Spring Data JPA interfaces (to be added)
+│   │   │   │   ├── model/                    ← JPA @Entity classes (to be added)
+│   │   │   │   └── security/                 ← JWT filter, config (to be added)
+│   │   │   └── resources/
+│   │   │       └── application.properties    ← MySQL, JPA, server config
+│   │   └── test/
+│   │       └── java/com/finvault/backend/
+│   │           └── BackendApplicationTests.java
+│   ├── pom.xml                               ← Maven dependencies & build config
+│   └── mvnw / mvnw.cmd                       ← Maven wrapper scripts
+│
+├── frontend/                                 ← Angular application
+│   ├── src/
+│   │   ├── app/
+│   │   │   ├── app.ts                        ← Root component
+│   │   │   ├── app.html                      ← Root template
+│   │   │   ├── app.routes.ts                 ← Application routing
+│   │   │   └── app.config.ts                 ← App-level providers
+│   │   ├── styles.css                        ← Global styles (post-Bootstrap overrides)
+│   │   ├── index.html                        ← SPA shell
+│   │   └── main.ts                           ← Angular bootstrap entry point
+│   ├── angular.json                          ← CLI config (Bootstrap registered here)
+│   ├── package.json                          ← npm dependencies
+│   └── tsconfig.json                         ← TypeScript compiler config
+│
+├── docs/
+│   └── Architecture.md                       ← This file
+│
+├── .github/                                  ← GitHub Actions CI/CD workflows (to be added)
+├── .gitignore
+└── README.md
 ```
 
 ---
@@ -171,4 +171,4 @@ FinVault/                                     ΓåÉ Monorepo root
 
 ---
 
-*Last updated: Sprint 1 ΓÇö SCRUM-9 (Backend Init) + SCRUM-10 (Frontend Init)*
+*Last updated: Sprint 1 — SCRUM-9 (Backend Init) + SCRUM-10 (Frontend Init)*
