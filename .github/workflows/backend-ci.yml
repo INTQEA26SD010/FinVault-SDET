@@ -1,0 +1,45 @@
+# ============================================================
+# FinVault — Backend CI Pipeline
+# Ticket: SCRUM-12
+# Triggers on push/PR to main; compiles and packages the
+# Spring Boot backend using Java 21 (Temurin). Tests are
+# skipped per the team's SDET-deferral policy.
+# ============================================================
+
+name: Backend CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build & Package Spring Boot Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout the repository code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Set up Java 21 (Eclipse Temurin — open-source, production-grade JDK)
+      - name: Set up Java 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'          # Caches ~/.m2 between runs — speeds up subsequent builds
+
+      # 3. Make the Maven wrapper executable (Linux requires explicit permission)
+      - name: Grant execute permission to Maven wrapper
+        working-directory: ./backend
+        run: chmod +x mvnw
+
+      # 4. Compile and package — tests are deferred per SDET policy
+      - name: Build with Maven (skip tests)
+        working-directory: ./backend
+        run: ./mvnw package -DskipTests --batch-mode --no-transfer-progress
