@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -47,6 +48,7 @@ public class User {
      * cascade = ALL ensures cards are persisted/deleted with the user.
      * orphanRemoval = true deletes cards removed from the list.
      */
+    @ToString.Exclude
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<VirtualCard> virtualCards = new ArrayList<>();
 
