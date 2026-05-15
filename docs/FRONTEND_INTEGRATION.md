@@ -1,8 +1,48 @@
-# FinVault — Frontend Integration Guide (SCRUM-18)
+# FinVault — Frontend Integration Guide
 
-## Overview
+> **Tickets:** SCRUM-15, SCRUM-16, SCRUM-17, SCRUM-18  
+> **Backend base URL:** `http://localhost:8080/api`
 
-The Angular frontend communicates with the Spring Boot backend (`http://localhost:8080`) via `HttpClient`. All HTTP calls are centralised in **`VirtualCardService`**.
+---
+
+## Auth Session Management
+
+After a successful login or signup, the frontend stores the user session in `sessionStorage` under the key `finvault_user`:
+
+```json
+{ "userId": 1, "username": "johndoe", "email": "john@example.com" }
+```
+
+| Method | Purpose |
+|---|---|
+| `authService.setSession(user)` | Write session to `sessionStorage` |
+| `authService.getSession()` | Read session — returns `SessionUser \| null` |
+| `authService.isLoggedIn()` | Returns `true` if session key exists |
+| `authService.logout()` | Clears `sessionStorage` and navigates to `/login` |
+
+---
+
+## Route Guard: `AuthGuard`
+
+The `/dashboard` route is protected by `authGuard`:
+
+```typescript
+// app.routes.ts
+{ path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] }
+```
+
+`authGuard` calls `authService.isLoggedIn()`. If `false`, redirects to `/login`. This means signup/login flows **must call `authService.setSession()` before navigating to `/dashboard`**.
+
+---
+
+## Service: `AuthService`
+
+| Method | HTTP | Endpoint | Notes |
+|---|---|---|---|
+| `register(payload)` | `POST` | `/api/auth/register` | Returns `{ message, userId }` |
+| `login(payload)` | `POST` | `/api/auth/login` | Returns `{ userId, username, email, message }`; auto-calls `setSession()` in `tap()` |
+
+---
 
 ## Service: `VirtualCardService`
 
@@ -10,27 +50,87 @@ The Angular frontend communicates with the Spring Boot backend (`http://localhos
 |---|---|---|---|
 | `getCardsByUserId(userId)` | `GET` | `/api/cards/user/{userId}` | Fetch all virtual cards for a user |
 | `createCard(userId, dailyLimit)` | `POST` | `/api/cards` | Generate a new virtual card |
-| `processTransaction(cardId, amount, merchantName)` | `POST` | `/api/transactions` | Deduct balance from a card |
+| `processTransaction(cardId, amount, merchantName)` | `POST` | `/api/transactions` | Simulate a spend; returns `SUCCESS (200)` or `DECLINED (422)` |
+| `getTransactionsByCardId(cardId)` | `GET` | `/api/transactions/card/{cardId}` | Fetch all transactions for a card, newest-first |
 
-## Data Flow
+---
 
-1. **Dashboard Init** — `ngOnInit` calls `getCardsByUserId(1)` (hardcoded user) and populates the card grid.
-2. **Create Card** — The "Generate New Card" form posts `{ userId, dailyLimit }` and refreshes the card list on success.
-3. **Simulate Purchase** — Each card's "Simulate Purchase" button sends a `$50 / Coffee` transaction, then refreshes cards to reflect the updated balance.
+## Data Flow: Dashboard Lifecycle
 
-## Configuration
+### 1. Init (`ngOnInit`)
+```
+getSession() → fetchCards() → getCardsByUserId(session.userId)
+```
 
-`HttpClient` is provided via `provideHttpClient(withFetch())` in `app.config.ts`.  
-No interceptors or auth tokens are configured yet — those will be added when the login session manager is implemented.
+### 2. Create Card
+```
+form submit → generateCard() → POST /api/cards → fetchCards()
+```
+
+### 3. Simulate Purchase
+```
+button click (type="button") → simulatePurchase(cardId, event)
+    → event.stopPropagation()          (blocks click bubbling)
+    → processingCardId = cardId        (disables all buttons)
+    → POST /api/transactions
+    → next: fetchCards()               (refresh balances)
+    → error 422: treat as DECLINED     (show error message, still refresh)
+    → processingCardId = null          (re-enable buttons)
+```
+
+### 4. Transactions Tab
+```
+setActiveNav('transactions') → fetchAllTransactions()
+    → forkJoin(cards.map(c => getTransactionsByCardId(c.id)))
+    → flatten + sort by timestamp DESC
+    → cdr.detectChanges()             (force render — required for withFetch())
+```
+
+---
+
+## Change Detection Note
+
+`provideHttpClient(withFetch())` uses the native Fetch API, which resolves promises **outside Angular's zone.js**. This means HTTP callbacks do not automatically trigger template re-renders.
+
+**Fix applied:** `ChangeDetectorRef.detectChanges()` is called at the end of every `subscribe` `next` and `error` callback in `DashboardComponent`.
+
+---
+
+## TypeScript Interfaces
+
+```typescript
+// virtual-card.service.ts
+export interface VirtualCard {
+  id: number;
+  cardNumber: string;
+  cvv: string;
+  dailyLimit: number;
+  balance: number;
+  userId: number;
+}
+
+export interface TransactionResponse {
+  id: number;
+  cardId: number;
+  amount: number;
+  merchantName: string;
+  timestamp: string;     // ISO-8601 string from backend LocalDateTime
+  status: string;        // 'SUCCESS' | 'DECLINED'
+}
+```
+
+---
 
 ## Running
 
-```bash
+```powershell
 # Backend (Spring Boot)
-cd backend && ./mvnw spring-boot:run
+cd backend
+.\mvnw.cmd spring-boot:run
 
-# Frontend (Angular)
-cd frontend && ng serve
+# Frontend (Angular) — must cd into frontend first
+cd frontend
+npx ng serve
 ```
 
-The Angular dev server proxies nothing — it hits `localhost:8080` directly via absolute URLs.
+Angular dev server runs on `http://localhost:4200` and hits `http://localhost:8080` directly (no proxy).

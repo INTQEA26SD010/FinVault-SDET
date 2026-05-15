@@ -4,7 +4,7 @@
   <!-- Top Navigation Bar -->
   <nav class="navbar navbar-dark bg-primary px-4 shadow" style="min-height:56px;">
     <span class="navbar-brand fw-bold fs-4 mb-0">
-      <span class="me-2"></span>FinVault
+      <span class="me-2">🏦</span>FinVault
     </span>
     <span class="navbar-text text-white-50 small d-none d-md-inline ms-2">Smart-Card Budgeting System</span>
     <div class="ms-auto d-flex align-items-center gap-3">
@@ -28,7 +28,7 @@
                 [class.bg-primary]="activeNav === 'dashboard'"
                 [class.text-white-50]="activeNav !== 'dashboard'"
                 (click)="setActiveNav('dashboard')">
-          ðŸ  Dashboard
+          🏠 Dashboard
         </button>
         <button type="button"
                 class="nav-link btn text-start rounded px-3 py-2 fw-semibold"
@@ -36,7 +36,7 @@
                 [class.bg-primary]="activeNav === 'cards'"
                 [class.text-white-50]="activeNav !== 'cards'"
                 (click)="setActiveNav('cards')">
-           My Cards
+          💳 My Cards
         </button>
         <button type="button"
                 class="nav-link btn text-start rounded px-3 py-2 fw-semibold"
@@ -44,13 +44,13 @@
                 [class.bg-primary]="activeNav === 'transactions'"
                 [class.text-white-50]="activeNav !== 'transactions'"
                 (click)="setActiveNav('transactions')">
-          ðŸ“Š Transactions
+          📊 Transactions
         </button>
       </nav>
       <div class="mt-auto">
         <button type="button" class="nav-link btn text-start text-danger px-3 py-2 w-100"
                 (click)="logout()">
-          ðŸšª Logout
+          🚪 Logout
         </button>
       </div>
     </aside>
@@ -58,10 +58,10 @@
     <!-- Main Content -->
     <main class="flex-grow-1 p-4 overflow-auto">
 
-      <!-- Welcome Banner â€” always visible -->
+      <!-- Welcome Banner — always visible -->
       <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
         <div>
-          <h4 class="text-white mb-0">Welcome back, <span class="text-primary">{{ user?.username }}</span> ðŸ‘‹</h4>
+          <h4 class="text-white mb-0">Welcome back, <span class="text-primary">{{ user?.username }}</span> 👋</h4>
           <small class="text-white-50">
             @if (activeNav === 'dashboard') { Here's an overview of your virtual cards }
             @if (activeNav === 'cards') { Manage and simulate purchases on your virtual cards }
@@ -71,16 +71,16 @@
         <span class="badge bg-primary fs-6 px-3 py-2 mt-2 mt-md-0">{{ cards.length }} Card(s)</span>
       </div>
 
-      <!-- Error banner â€” always visible -->
+      <!-- Error banner — always visible -->
       @if (errorMsg) {
         <div class="alert alert-danger py-2 d-flex align-items-center mb-4" role="alert">
-          <span class="me-2">âš ï¸</span>{{ errorMsg }}
+          <span class="me-2">⚠️</span>{{ errorMsg }}
           <button type="button" class="btn-close btn-close-white ms-auto btn-sm"
                   aria-label="Dismiss" (click)="errorMsg = ''"></button>
         </div>
       }
 
-      <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• DASHBOARD TAB â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+      <!-- ═══════════════ DASHBOARD TAB ═══════════════ -->
       @if (activeNav === 'dashboard') {
 
         <!-- Summary Stats Row -->
@@ -116,8 +116,8 @@
 
         @if (loading) {
           <div class="text-center text-white-50 py-5">
-            <div class="spinner-border" role="status"><span class="visually-hidden">Loadingâ€¦</span></div>
-            <div class="small mt-2">Loading cardsâ€¦</div>
+            <div class="spinner-border" role="status"><span class="visually-hidden">Loading…</span></div>
+            <div class="small mt-2">Loading cards…</div>
           </div>
         }
 
@@ -165,13 +165,13 @@
         }
       }
 
-      <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• MY CARDS TAB â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+      <!-- ═══════════════ MY CARDS TAB ═══════════════ -->
       @if (activeNav === 'cards') {
 
-        <!-- Generate New Card â€” wrapped in a real <form> so submit semantics are explicit -->
+        <!-- Generate New Card — wrapped in a real <form> so submit semantics are explicit -->
         <div class="card bg-secondary border-0 shadow-sm mb-4">
           <div class="card-body">
-            <h6 class="text-white mb-3">âš¡ Generate New Card</h6>
+            <h6 class="text-white mb-3">⚡ Generate New Card</h6>
             <form (ngSubmit)="generateCard()" #generateForm="ngForm"
                   class="d-flex flex-wrap align-items-end gap-3">
               <div>
@@ -185,7 +185,7 @@
               <button type="submit" class="btn btn-primary btn-sm px-4"
                       [disabled]="creatingCard || generateForm.invalid">
                 @if (creatingCard) {
-                  <span class="spinner-border spinner-border-sm me-1" role="status"></span>Creatingâ€¦
+                  <span class="spinner-border spinner-border-sm me-1" role="status"></span>Creating…
                 } @else {
                   + Generate New Card
                 }
@@ -199,8 +199,8 @@
 
         @if (loading) {
           <div class="text-center text-white-50 py-5">
-            <div class="spinner-border" role="status"><span class="visually-hidden">Loadingâ€¦</span></div>
-            <div class="small mt-2">Loading cardsâ€¦</div>
+            <div class="spinner-border" role="status"><span class="visually-hidden">Loading…</span></div>
+            <div class="small mt-2">Loading cards…</div>
           </div>
         }
 
@@ -259,9 +259,9 @@
                             [disabled]="processingCardId !== null"
                             (click)="simulatePurchase(card.id, $event)">
                       @if (processingCardId === card.id) {
-                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>Processingâ€¦
+                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>Processing…
                       } @else {
-                        â˜• Simulate $50 Purchase
+                        ☕ Simulate $50 Purchase
                       }
                     </button>
                   </div>
@@ -272,7 +272,7 @@
         }
       }
 
-      <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• TRANSACTIONS TAB â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+      <!-- ═══════════════ TRANSACTIONS TAB ═══════════════ -->
       @if (activeNav === 'transactions') {
 
         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -282,23 +282,23 @@
           <button type="button" class="btn btn-outline-secondary btn-sm px-3"
                   (click)="fetchAllTransactions()" [disabled]="txLoading">
             @if (txLoading) {
-              <span class="spinner-border spinner-border-sm me-1" role="status"></span>Loadingâ€¦
+              <span class="spinner-border spinner-border-sm me-1" role="status"></span>Loading…
             } @else {
-              ðŸ”„ Refresh
+              🔄 Refresh
             }
           </button>
         </div>
 
         @if (txLoading) {
           <div class="text-center text-white-50 py-5">
-            <div class="spinner-border" role="status"><span class="visually-hidden">Loadingâ€¦</span></div>
-            <div class="small mt-2">Loading transactionsâ€¦</div>
+            <div class="spinner-border" role="status"><span class="visually-hidden">Loading…</span></div>
+            <div class="small mt-2">Loading transactions…</div>
           </div>
         }
 
         @if (!txLoading && transactions.length === 0) {
           <div class="text-center text-white-50 py-5">
-            <div class="fs-1 mb-2">ðŸ“Š</div>
+            <div class="fs-1 mb-2">📊</div>
             <p>No transactions yet. Use <strong>Simulate $50 Purchase</strong> on your cards to see history here.</p>
           </div>
         }
@@ -320,7 +320,7 @@
                     <tr>
                       <td class="py-3 ps-3">
                         <div class="text-white fw-semibold">{{ tx.merchantName }}</div>
-                        <div class="text-white-50 small">Card â€¢â€¢â€¢â€¢ {{ getCardLastFour(tx.cardId) }}</div>
+                        <div class="text-white-50 small">Card •••• {{ getCardLastFour(tx.cardId) }}</div>
                       </td>
                       <td class="py-3 text-white fw-bold">${{ tx.amount | number:'1.2-2' }}</td>
                       <td class="py-3">
@@ -342,10 +342,10 @@
         }
       }
 
-      <!-- Mobile Logout â€” always visible on small screens -->
+      <!-- Mobile Logout — always visible on small screens -->
       <div class="d-md-none text-center mt-4">
         <button type="button" class="btn btn-outline-danger btn-sm" (click)="logout()">
-          ðŸšª Logout
+          🚪 Logout
         </button>
       </div>
 

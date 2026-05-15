@@ -80,6 +80,7 @@ public class TransactionService {
      * @param cardId the virtual card's primary key
      * @return list of transaction response DTOs, may be empty
      */
+    @Transactional(readOnly = true)
     public List<TransactionResponseDto> getTransactionsByCardId(Long cardId) {
         return transactionRepository
                 .findByVirtualCardIdOrderByTimestampDesc(cardId)

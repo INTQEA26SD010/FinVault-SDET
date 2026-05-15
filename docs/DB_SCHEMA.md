@@ -21,10 +21,11 @@
 | 4 | [Entity Relationship Diagram](#-entity-relationship-diagram) | Visual map of table relationships |
 | 5 | [Table: `users`](#-table-users) | User accounts and authentication |
 | 6 | [Table: `virtual_cards`](#-table-virtual_cards) | Virtual smart cards schema |
-| 7 | [Constraints Deep Dive](#-constraints-deep-dive) | Understanding PKs, FKs, UNIQUE, and ENUMs |
-| 8 | [Full SQL Schema Script](#-full-sql-schema-script) | Ready-to-run initialization script |
-| 9 | [JPA Mapping Preview](#-jpa-mapping-preview) | How tables map to Java entities |
-| 10 | [Glossary](#-glossary) | Key database terms |
+| 7 | [Table: `transactions`](#-table-transactions) | Transaction audit log |
+| 8 | [Constraints Deep Dive](#-constraints-deep-dive) | Understanding PKs, FKs, UNIQUE, and ENUMs |
+| 9 | [Full SQL Schema Script](#-full-sql-schema-script) | Ready-to-run initialization script |
+| 10 | [JPA Mapping Preview](#-jpa-mapping-preview) | How tables map to Java entities |
+| 11 | [Glossary](#-glossary) | Key database terms |
 
 ---
 
@@ -239,6 +240,61 @@ CREATE TABLE virtual_cards (
   COMMENT='Virtual smart cards issued to users — acts as per-user spending firewall';
 ```
 
+---
+
+## 📊 Table: `transactions`
+
+> Records every spend attempt against a VirtualCard — both approved and declined. Provides the complete audit trail for the Transactions tab in the dashboard.
+
+### SQL Definition
+
+```sql
+CREATE TABLE transactions (
+    id              BIGINT          NOT NULL AUTO_INCREMENT,
+    virtual_card_id BIGINT          NOT NULL               COMMENT 'FK → virtual_cards.id',
+    amount          DECIMAL(10, 2)  NOT NULL               COMMENT 'Spend amount',
+    merchant_name   VARCHAR(100)    NOT NULL,
+    timestamp       DATETIME        NOT NULL               COMMENT 'Set by @PrePersist in Transaction.java',
+    status          ENUM(
+                        'SUCCESS',
+                        'DECLINED'
+                    )               NOT NULL,
+
+    CONSTRAINT pk_transactions          PRIMARY KEY (id),
+    CONSTRAINT fk_transactions_card     FOREIGN KEY (virtual_card_id)
+        REFERENCES virtual_cards (id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci
+  COMMENT='Audit log of every spend attempt — SUCCESS or DECLINED';
+```
+
+### Column Reference
+
+| Column | Type | Constraints | Description |
+|:------:|:----:|:-----------:|-------------|
+| `id` | `BIGINT` | `PK`, `AUTO_INCREMENT` | Surrogate key |
+| `virtual_card_id` | `BIGINT` | `NOT NULL`, `FK → virtual_cards.id` | Which card was charged |
+| `amount` | `DECIMAL(10,2)` | `NOT NULL` | Exact monetary amount — `DECIMAL` for precision |
+| `merchant_name` | `VARCHAR(100)` | `NOT NULL` | Name of the merchant (e.g., "Coffee Shop") |
+| `timestamp` | `DATETIME` | `NOT NULL` | Auto-set by `@PrePersist` in `Transaction.java`; records exact time |
+| `status` | `ENUM` | `NOT NULL` | `SUCCESS` — balance updated; `DECLINED` — limit exceeded, balance unchanged |
+
+### Approval Logic (enforced in `TransactionService`)
+
+```
+projectedBalance = card.balance + request.amount
+
+IF projectedBalance <= card.dailyLimit  →  SUCCESS (balance updated)
+IF projectedBalance > card.dailyLimit   →  DECLINED (balance unchanged)
+
+Both outcomes are persisted as a Transaction row for audit trail.
+```
+
+> ⚠️ Every transaction is saved regardless of outcome. This enables the dashboard's Transactions tab to show both approved and declined history.
+
 ### Column Reference
 
 | Column | Type | Constraints | Description |
@@ -362,11 +418,30 @@ CREATE TABLE IF NOT EXISTS users (
   COMMENT='Core user accounts and authentication credentials';
 
 -- -----------------------------------------------------------------
--- Table 2: virtual_cards
--- Purpose: Virtual smart cards — per-user spending firewall
--- Depends on: users (FK: user_id → users.id)
+-- Table 3: transactions
+-- Purpose: Audit log of every spend attempt against a virtual card
+-- Depends on: virtual_cards (FK: virtual_card_id → virtual_cards.id)
 -- -----------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS virtual_cards (
+CREATE TABLE IF NOT EXISTS transactions (
+    id              BIGINT          NOT NULL AUTO_INCREMENT,
+    virtual_card_id BIGINT          NOT NULL               COMMENT 'FK → virtual_cards.id',
+    amount          DECIMAL(10, 2)  NOT NULL               COMMENT 'Spend amount',
+    merchant_name   VARCHAR(100)    NOT NULL,
+    timestamp       DATETIME        NOT NULL               COMMENT 'Set by @PrePersist in Transaction.java',
+    status          ENUM(
+                        'SUCCESS',
+                        'DECLINED'
+                    )               NOT NULL,
+
+    CONSTRAINT pk_transactions          PRIMARY KEY (id),
+    CONSTRAINT fk_transactions_card     FOREIGN KEY (virtual_card_id)
+        REFERENCES virtual_cards (id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COLLATE=utf8mb4_unicode_ci
+  COMMENT='Audit log of every spend attempt — SUCCESS or DECLINED';
     id          BIGINT           NOT NULL AUTO_INCREMENT,
     user_id     BIGINT           NOT NULL               COMMENT 'FK → users.id',
     card_number CHAR(16)         NOT NULL,
@@ -403,7 +478,7 @@ These SQL tables map directly to Java `@Entity` classes in the Spring Boot backe
 |:---------:|:-----------:|:---------------------:|---------|
 | `users` | `User.java` | `UserRepository.java` | See [JPA_ENTITIES.md](JPA_ENTITIES.md) |
 | `virtual_cards` | `VirtualCard.java` | `VirtualCardRepository.java` | See [JPA_ENTITIES.md](JPA_ENTITIES.md) |
-
+| `transactions` | `Transaction.java` | `TransactionRepository.java` | See [JPA_ENTITIES.md](JPA_ENTITIES.md) |
 ### How JPA Maps SQL Types to Java Types
 
 | SQL Column Type | Java Field Type | Why This Mapping? |
@@ -439,6 +514,6 @@ These SQL tables map directly to Java `@Entity` classes in the Spring Boot backe
 
 <p align="center">
   <b>🗄️ FinVault Database Schema Document</b><br>
-  <sub>Sprint 1 — SCRUM-11 (Initial DB Schema — Users & Virtual Cards)</sub><br>
+  <sub>Sprint 1 — SCRUM-11 (Initial DB Schema — Users & Virtual Cards) | Sprint 2 — SCRUM-17 (Transactions Table)</sub><br>
   <sub>Part of the <a href="ARCHITECTURE.md">FinVault Documentation Suite</a></sub>
 </p>

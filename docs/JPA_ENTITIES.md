@@ -20,13 +20,14 @@
 | 2 | [How Hibernate Works Under the Hood](#-how-hibernate-works-under-the-hood) | The magic behind automatic SQL generation |
 | 3 | [Entity: `User`](#-entity-user) | Mapping, annotations, and design choices |
 | 4 | [Entity: `VirtualCard`](#-entity-virtualcard) | Mapping, annotations, and design choices |
-| 5 | [The `@OneToMany` / `@ManyToOne` Relationship](#-the-onetomany--manytoone-relationship) | Understanding JPA relationships |
-| 6 | [Repositories — Zero-Boilerplate Data Access](#-repositories--zero-boilerplate-data-access) | Spring Data JPA repository interfaces |
-| 7 | [Derived Query Methods — SQL Without Writing SQL](#-derived-query-methods--sql-without-writing-sql) | How Spring generates queries from method names |
-| 8 | [Lombok — Eliminating Java Boilerplate](#-lombok--eliminating-java-boilerplate) | Understanding `@Data`, `@NoArgsConstructor`, etc. |
-| 9 | [Package Structure](#-package-structure) | File organization overview |
-| 10 | [Common JPA Pitfalls & How FinVault Avoids Them](#-common-jpa-pitfalls--how-finvault-avoids-them) | Anti-patterns and best practices |
-| 11 | [Glossary](#-glossary) | Key JPA/ORM terms |
+| 5 | [Entity: `Transaction`](#-entity-transaction) | Mapping, approval logic, and status enum |
+| 6 | [The `@OneToMany` / `@ManyToOne` Relationship](#-the-onetomany--manytoone-relationship) | Understanding JPA relationships |
+| 7 | [Repositories — Zero-Boilerplate Data Access](#-repositories--zero-boilerplate-data-access) | Spring Data JPA repository interfaces |
+| 8 | [Derived Query Methods — SQL Without Writing SQL](#-derived-query-methods--sql-without-writing-sql) | How Spring generates queries from method names |
+| 9 | [Lombok — Eliminating Java Boilerplate](#-lombok--eliminating-java-boilerplate) | Understanding `@Data`, `@NoArgsConstructor`, etc. |
+| 10 | [Package Structure](#-package-structure) | File organization overview |
+| 11 | [Common JPA Pitfalls & How FinVault Avoids Them](#-common-jpa-pitfalls--how-finvault-avoids-them) | Anti-patterns and best practices |
+| 12 | [Glossary](#-glossary) | Key JPA/ORM terms |
 
 ---
 
@@ -269,7 +270,97 @@ System.out.println(price);       // 0.30 — CORRECT!
 
 ---
 
-## 🔗 The `@OneToMany` / `@ManyToOne` Relationship
+## � Entity: `Transaction`
+
+> **File:** `src/main/java/com/finvault/backend/entity/Transaction.java`  
+> **Maps to:** MySQL `transactions` table
+
+### Visual Field Mapping
+
+```
+ Transaction.java (@Entity)                          transactions (MySQL table)
+ ═══════════════════════════════     ══════════════════════════════════
+ @Id @GeneratedValue(IDENTITY)
+ Long id;                          ──────────►   id BIGINT PK AUTO_INCREMENT
+
+ @ManyToOne(fetch=LAZY)
+ @JoinColumn(name="virtual_card_id")
+ VirtualCard virtualCard;          ──────────►   virtual_card_id BIGINT FK
+
+ BigDecimal amount;                ──────────►   amount DECIMAL(10,2) NOT NULL
+
+ String merchantName;              ──────────►   merchant_name VARCHAR(100) NOT NULL
+
+ LocalDateTime timestamp;          ──────────►   timestamp DATETIME NOT NULL
+
+ @Enumerated(STRING)
+ TransactionStatus status;         ──────────►   status ENUM('SUCCESS','DECLINED')
+```
+
+### Actual Code with Annotations Explained
+
+```java
+@Entity
+@Table(name = "transactions")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Transaction {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ToString.Exclude                         // ① Prevents circular toString loop
+    @ManyToOne(fetch = FetchType.LAZY,        // ② LAZY - don't load card on every tx query
+               optional = false)
+    @JoinColumn(name = "virtual_card_id",     // ③ FK column name in transactions table
+                nullable = false)
+    private VirtualCard virtualCard;
+
+    @Column(name = "amount", nullable = false,
+            precision = 10, scale = 2)        // ④ DECIMAL(10,2) - exact money
+    private BigDecimal amount;
+
+    @Column(name = "merchant_name",
+            nullable = false, length = 100)
+    private String merchantName;
+
+    @Column(name = "timestamp",
+            nullable = false, updatable = false)
+    private LocalDateTime timestamp;
+
+    @Enumerated(EnumType.STRING)              // ⑤ Stores "SUCCESS", not 0
+    @Column(name = "status", nullable = false, length = 10)
+    private TransactionStatus status;
+
+    @PrePersist                               // ⑥ Auto-sets timestamp before INSERT
+    protected void onCreate() {
+        this.timestamp = LocalDateTime.now();
+    }
+
+    public enum TransactionStatus {
+        SUCCESS,    // Amount within limit; balance updated
+        DECLINED    // Amount would exceed limit; balance unchanged
+    }
+}
+```
+
+### Key Design Choices
+
+| # | Pattern | Purpose | Why It Matters |
+|:-:|---------|---------|----------------|
+| ① | `@ToString.Exclude` | Excludes `virtualCard` from `toString()` | Prevents `StackOverflowError` from bidirectional loop |
+| ② | `@ManyToOne(fetch = LAZY)` | Don't load VirtualCard on every transaction query | N+1 prevention; we only need `card.getId()` in `toResponseDto()` |
+| ④ | `BigDecimal` amount | Exact decimal for money | `float`/`double` accumulate rounding errors |
+| ⑤ | `@Enumerated(STRING)` | Store `"SUCCESS"` not `0` | Enum reordering in Java won't corrupt existing DB rows |
+| ⑥ | `@PrePersist` timestamp | Auto-set before INSERT | Consistent timestamps, no reliance on DB-specific defaults |
+
+> ⚠️ **Critical `@Transactional` note:** `getTransactionsByCardId()` in `TransactionService` is annotated `@Transactional(readOnly = true)`. Without this, accessing `tx.getVirtualCard().getId()` inside `toResponseDto()` throws `LazyInitializationException` because `spring.jpa.open-in-view=false` closes the Hibernate session before the service returns.
+
+---
+
+## �🔗 The `@OneToMany` / `@ManyToOne` Relationship
 
 ### How It Works in FinVault
 
@@ -470,16 +561,23 @@ com.finvault.backend
 │   ├── User.java                           ← @Entity → maps to `users` table
 │   │   └── Fields: id, username, email, passwordHash, createdAt, virtualCards
 │   │
-│   └── VirtualCard.java                    ← @Entity → maps to `virtual_cards` table
-│       ├── Fields: id, user, cardNumber, expiryDate, cvv, dailyLimit, status, createdAt
-│       └── CardStatus enum: ACTIVE, FROZEN, EXPIRED, CANCELLED
+│   ├── VirtualCard.java                    ← @Entity → maps to `virtual_cards` table
+│   │   ├── Fields: id, user, cardNumber, expiryDate, cvv, dailyLimit, balance, status, createdAt
+│   │   └── CardStatus enum: ACTIVE, FROZEN, EXPIRED, CANCELLED
+│   │
+│   └── Transaction.java                    ← @Entity → maps to `transactions` table
+│       ├── Fields: id, virtualCard, amount, merchantName, timestamp, status
+│       └── TransactionStatus enum: SUCCESS, DECLINED
 │
 └── 📂 repository/                          ← Data Access Layer
     ├── UserRepository.java                 ← JpaRepository<User, Long>
     │   └── Custom: findByEmail, findByUsername, existsByEmail
     │
-    └── VirtualCardRepository.java          ← JpaRepository<VirtualCard, Long>
-        └── Custom: findByUserId, findByCardNumber, findByUserIdAndStatus
+    ├── VirtualCardRepository.java          ← JpaRepository<VirtualCard, Long>
+    │   └── Custom: findByUserId, findByCardNumber, findByUserIdAndStatus
+    │
+    └── TransactionRepository.java          ← JpaRepository<Transaction, Long>
+        └── Custom: findByVirtualCardIdOrderByTimestampDesc(Long cardId)
 ```
 
 ---
@@ -488,13 +586,14 @@ com.finvault.backend
 
 | # | Pitfall | Impact | FinVault's Solution |
 |:-:|---------|--------|:-------------------:|
-| 1 | **Returning @Entity from controller** | Exposes password hashes, CVVs to API consumers | Uses DTOs (`UserRegistrationDto`, `VirtualCardResponseDto`) |
-| 2 | **Bidirectional `toString()` loop** | `User.toString()` calls `Card.toString()` which calls `User.toString()` → `StackOverflowError` | `@ToString.Exclude` on relationship fields |
-| 3 | **EAGER loading by default** | `@OneToMany` loads ALL cards on EVERY user query — N+1 problem | `@ManyToOne(fetch = LAZY)` on VirtualCard |
+| 1 | **Returning @Entity from controller** | Exposes password hashes, CVVs to API consumers | Uses DTOs (`UserRegistrationDto`, `VirtualCardResponseDto`, `TransactionResponseDto`) |
+| 2 | **Bidirectional `toString()` loop** | `User.toString()` calls `Card.toString()` which calls `User.toString()` → `StackOverflowError` | `@ToString.Exclude` on relationship fields in all entities |
+| 3 | **EAGER loading by default** | `@OneToMany` loads ALL cards on EVERY user query — N+1 problem | `@ManyToOne(fetch = LAZY)` on VirtualCard and Transaction |
 | 4 | **Using `float`/`double` for money** | Rounding errors in financial calculations | `BigDecimal` + `DECIMAL(10,2)` |
 | 5 | **Using `@Enumerated(ORDINAL)`** | Adding/reordering enum values corrupts existing DB data | `@Enumerated(EnumType.STRING)` — stores name, not position |
 | 6 | **Missing `@PrePersist`** | `createdAt` is null if application doesn't set it | `@PrePersist protected void onCreate()` auto-sets before INSERT |
 | 7 | **No orphan removal** | Removing card from user's list leaves it orphaned in DB | `orphanRemoval = true` on `@OneToMany` |
+| 8 | **Missing `@Transactional` on read services** | `LazyInitializationException` when accessing LAZY proxy after Hibernate session closes | `@Transactional(readOnly = true)` on `getTransactionsByCardId()` in `TransactionService` |
 
 ---
 
@@ -522,6 +621,6 @@ com.finvault.backend
 
 <p align="center">
   <b>💾 FinVault JPA Entities & Repositories Document</b><br>
-  <sub>Sprint 1 — SCRUM-13 (JPA Entities & Repositories)</sub><br>
+  <sub>Sprint 1 — SCRUM-13 (JPA Entities & Repositories) | Sprint 2 — SCRUM-17 (Transaction Entity)</sub><br>
   <sub>Part of the <a href="ARCHITECTURE.md">FinVault Documentation Suite</a></sub>
 </p>

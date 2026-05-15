@@ -1,9 +1,10 @@
-import { Component, OnInit, DestroyRef, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, DestroyRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { HttpErrorResponse } from '@angular/common/http';
 import { VirtualCardService, VirtualCard, TransactionResponse } from '../services/virtual-card.service';
 import { AuthService, SessionUser } from '../services/auth.service';
 
@@ -29,6 +30,7 @@ export class DashboardComponent implements OnInit {
   activeNav = 'dashboard';
 
   private readonly destroyRef = inject(DestroyRef);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   constructor(
     private cardService: VirtualCardService,
@@ -75,10 +77,12 @@ export class DashboardComponent implements OnInit {
           if (this.activeNav === 'transactions') {
             this.fetchAllTransactions();
           }
+          this.cdr.detectChanges();
         },
         error: () => {
           this.errorMsg = 'Failed to load cards. Is the backend running?';
           this.loading = false;
+          this.cdr.detectChanges();
         }
       });
   }
@@ -90,8 +94,8 @@ export class DashboardComponent implements OnInit {
     this.cardService.createCard(this.user.userId, this.newCardLimit)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => { this.creatingCard = false; this.fetchCards(); },
-        error: () => { this.errorMsg = 'Failed to create card.'; this.creatingCard = false; }
+        next: () => { this.creatingCard = false; this.fetchCards(); this.cdr.detectChanges(); },
+        error: () => { this.errorMsg = 'Failed to create card.'; this.creatingCard = false; this.cdr.detectChanges(); }
       });
   }
 
@@ -114,8 +118,19 @@ export class DashboardComponent implements OnInit {
             this.errorMsg = 'Transaction declined — daily limit reached.';
           }
           this.fetchCards();
+          this.cdr.detectChanges();
         },
-        error: () => { this.errorMsg = 'Transaction failed.'; this.processingCardId = null; }
+        error: (err: HttpErrorResponse) => {
+          this.processingCardId = null;
+          // Backend returns 422 for DECLINED — extract the body and treat as success
+          if (err.status === 422 && err.error?.status === 'DECLINED') {
+            this.errorMsg = 'Transaction declined — daily limit reached.';
+          } else {
+            this.errorMsg = 'Transaction failed.';
+          }
+          this.fetchCards();
+          this.cdr.detectChanges();
+        }
       });
   }
 
@@ -136,8 +151,9 @@ export class DashboardComponent implements OnInit {
             .flat()
             .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
           this.txLoading = false;
+          this.cdr.detectChanges();
         },
-        error: () => { this.txLoading = false; }
+        error: () => { this.txLoading = false; this.cdr.detectChanges(); }
       });
   }
 
