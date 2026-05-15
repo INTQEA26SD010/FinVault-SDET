@@ -1,5 +1,7 @@
 package com.finvault.backend.service;
 
+import com.finvault.backend.dto.LoginRequestDto;
+import com.finvault.backend.dto.LoginResponseDto;
 import com.finvault.backend.dto.UserRegistrationDto;
 import com.finvault.backend.entity.User;
 import com.finvault.backend.repository.UserRepository;
@@ -46,5 +48,24 @@ public class UserService {
 
         User saved = userRepository.save(user);
         return saved.getId();
+    }
+
+    /**
+     * Authenticates a user by email and password.
+     */
+    public LoginResponseDto loginUser(LoginRequestDto dto) {
+        User user = userRepository.findByEmail(dto.getEmail())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
+
+        if (!passwordEncoder.matches(dto.getPassword(), user.getPasswordHash())) {
+            throw new IllegalArgumentException("Invalid email or password");
+        }
+
+        return new LoginResponseDto(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                "Login successful"
+        );
     }
 }

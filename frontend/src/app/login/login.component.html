@@ -1,112 +1,130 @@
-<!-- FinVault Login / Register Page -->
 <div class="min-vh-100 d-flex align-items-center justify-content-center bg-dark">
   <div class="card shadow-lg border-0" style="width: 100%; max-width: 440px;">
 
-    <!-- Card Header -->
+    <!-- Header -->
     <div class="card-header bg-primary text-white text-center py-4">
-      <h2 class="mb-0 fw-bold">
-        <span class="me-2">💳</span>FinVault
-      </h2>
+      <h2 class="mb-1 fw-bold"><span class="me-2">💳</span>FinVault</h2>
       <small class="text-white-50">Smart-Card Budgeting System</small>
     </div>
 
-    <!-- Card Body -->
+    <!-- Tab Switcher -->
+    <div class="d-flex border-bottom">
+      <button
+        class="btn flex-fill rounded-0 py-2 fw-semibold"
+        [class.btn-white]="activeTab === 'login'"
+        [class.btn-light]="activeTab === 'login'"
+        [class.btn-outline-secondary]="activeTab !== 'login'"
+        [class.border-0]="activeTab !== 'login'"
+        (click)="switchTab('login')">
+        Sign In
+      </button>
+      <button
+        class="btn flex-fill rounded-0 py-2 fw-semibold"
+        [class.btn-white]="activeTab === 'signup'"
+        [class.btn-light]="activeTab === 'signup'"
+        [class.btn-outline-secondary]="activeTab !== 'signup'"
+        [class.border-0]="activeTab !== 'signup'"
+        (click)="switchTab('signup')">
+        Create Account
+      </button>
+    </div>
+
     <div class="card-body p-4">
-      <h5 class="card-title mb-4 text-center text-muted">Create Your Account</h5>
 
-      <!-- Success Alert -->
       @if (successMessage) {
-        <div class="alert alert-success d-flex align-items-center" role="alert">
-          <span>✅ {{ successMessage }}</span>
-        </div>
+        <div class="alert alert-success py-2" role="alert">{{ successMessage }}</div>
       }
-
-      <!-- Error Alert -->
       @if (errorMessage) {
-        <div class="alert alert-danger d-flex align-items-center" role="alert">
-          <span>❌ {{ errorMessage }}</span>
-        </div>
+        <div class="alert alert-danger py-2" role="alert">{{ errorMessage }}</div>
       }
 
-      <!-- Registration Form -->
-      <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+      <!-- ============ LOGIN FORM ============ -->
+      @if (activeTab === 'login') {
+        <h5 class="card-title mb-4 text-center text-muted">Sign in to your account</h5>
+        <form (ngSubmit)="onLogin()" #loginForm="ngForm">
+          <div class="mb-3">
+            <label for="loginEmail" class="form-label fw-semibold">Email address</label>
+            <input type="email" id="loginEmail" name="loginEmail" class="form-control"
+                   placeholder="john&#64;example.com"
+                   [(ngModel)]="loginData.email" required email #loginEmailF="ngModel" />
+            @if (loginEmailF.invalid && loginEmailF.touched) {
+              <div class="text-danger small mt-1">Please enter a valid email.</div>
+            }
+          </div>
+          <div class="mb-4">
+            <label for="loginPassword" class="form-label fw-semibold">Password</label>
+            <input type="password" id="loginPassword" name="loginPassword" class="form-control"
+                   placeholder="Your password"
+                   [(ngModel)]="loginData.password" required minlength="6" #loginPwF="ngModel" />
+            @if (loginPwF.invalid && loginPwF.touched) {
+              <div class="text-danger small mt-1">Password must be at least 6 characters.</div>
+            }
+          </div>
+          <button type="submit" class="btn btn-primary w-100 py-2 fw-bold"
+                  [disabled]="loginForm.invalid || isLoading">
+            @if (isLoading) {
+              <span class="spinner-border spinner-border-sm me-2" role="status"></span>Signing in...
+            } @else {
+              Sign In
+            }
+          </button>
+        </form>
+        <p class="text-center text-muted small mt-3 mb-0">
+          Don't have an account?
+          <a href="javascript:void(0)" class="text-primary fw-semibold" (click)="switchTab('signup')">Create one</a>
+        </p>
+      }
 
-        <!-- Username -->
-        <div class="mb-3">
-          <label for="username" class="form-label fw-semibold">Username</label>
-          <input
-            type="text"
-            id="username"
-            name="username"
-            class="form-control"
-            placeholder="e.g. johndoe"
-            [(ngModel)]="formData.username"
-            required
-            minlength="3"
-            #usernameField="ngModel"
-          />
-          @if (usernameField.invalid && usernameField.touched) {
-            <div class="text-danger small mt-1">Username must be at least 3 characters.</div>
-          }
-        </div>
+      <!-- ============ SIGNUP FORM ============ -->
+      @if (activeTab === 'signup') {
+        <h5 class="card-title mb-4 text-center text-muted">Create your account</h5>
+        <form (ngSubmit)="onSignup()" #signupForm="ngForm">
+          <div class="mb-3">
+            <label for="signupUsername" class="form-label fw-semibold">Username</label>
+            <input type="text" id="signupUsername" name="signupUsername" class="form-control"
+                   placeholder="e.g. johndoe"
+                   [(ngModel)]="signupData.username" required minlength="3" #supUser="ngModel" />
+            @if (supUser.invalid && supUser.touched) {
+              <div class="text-danger small mt-1">Username must be at least 3 characters.</div>
+            }
+          </div>
+          <div class="mb-3">
+            <label for="signupEmail" class="form-label fw-semibold">Email address</label>
+            <input type="email" id="signupEmail" name="signupEmail" class="form-control"
+                   placeholder="john&#64;example.com"
+                   [(ngModel)]="signupData.email" required email #supEmail="ngModel" />
+            @if (supEmail.invalid && supEmail.touched) {
+              <div class="text-danger small mt-1">Please enter a valid email.</div>
+            }
+          </div>
+          <div class="mb-4">
+            <label for="signupPassword" class="form-label fw-semibold">Password</label>
+            <input type="password" id="signupPassword" name="signupPassword" class="form-control"
+                   placeholder="Min. 6 characters"
+                   [(ngModel)]="signupData.password" required minlength="6" #supPw="ngModel" />
+            @if (supPw.invalid && supPw.touched) {
+              <div class="text-danger small mt-1">Password must be at least 6 characters.</div>
+            }
+          </div>
+          <button type="submit" class="btn btn-primary w-100 py-2 fw-bold"
+                  [disabled]="signupForm.invalid || isLoading">
+            @if (isLoading) {
+              <span class="spinner-border spinner-border-sm me-2" role="status"></span>Creating account...
+            } @else {
+              Create Account
+            }
+          </button>
+        </form>
+        <p class="text-center text-muted small mt-3 mb-0">
+          Already have an account?
+          <a href="javascript:void(0)" class="text-primary fw-semibold" (click)="switchTab('login')">Sign in</a>
+        </p>
+      }
 
-        <!-- Email -->
-        <div class="mb-3">
-          <label for="email" class="form-label fw-semibold">Email address</label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            class="form-control"
-            placeholder="john@example.com"
-            [(ngModel)]="formData.email"
-            required
-            email
-            #emailField="ngModel"
-          />
-          @if (emailField.invalid && emailField.touched) {
-            <div class="text-danger small mt-1">Please enter a valid email.</div>
-          }
-        </div>
-
-        <!-- Password -->
-        <div class="mb-4">
-          <label for="password" class="form-label fw-semibold">Password</label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            class="form-control"
-            placeholder="Min. 6 characters"
-            [(ngModel)]="formData.password"
-            required
-            minlength="6"
-            #passwordField="ngModel"
-          />
-          @if (passwordField.invalid && passwordField.touched) {
-            <div class="text-danger small mt-1">Password must be at least 6 characters.</div>
-          }
-        </div>
-
-        <!-- Submit Button -->
-        <button
-          type="submit"
-          class="btn btn-primary w-100 py-2 fw-bold"
-          [disabled]="loginForm.invalid || isLoading"
-        >
-          @if (isLoading) {
-            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-            Registering...
-          } @else {
-            Register &amp; Continue →
-          }
-        </button>
-
-      </form>
     </div>
 
     <div class="card-footer text-center text-muted py-3 small">
-      FinVault © 2026 — Your financial firewall.
+      FinVault &copy; 2026 — Your financial firewall.
     </div>
   </div>
 </div>
