@@ -1,29 +1,49 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-
-export interface MockCard {
-  id: number;
-  name: string;
-  number: string;
-  limit: string;
-  status: 'ACTIVE' | 'FROZEN';
-  color: string;
-}
+import { FormsModule } from '@angular/forms';
+import { VirtualCardService, VirtualCard } from '../services/virtual-card.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './dashboard.component.html'
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit {
+  cards: VirtualCard[] = [];
+  newCardLimit: number = 500;
+  loading = false;
+  errorMsg = '';
 
-  // Mock data — will be replaced with live API calls in SCRUM-16
-  mockCards: MockCard[] = [
-    { id: 1, name: 'Groceries',   number: '**** **** **** 1234', limit: '₹5,000 / day',  status: 'ACTIVE', color: 'primary' },
-    { id: 2, name: 'Fuel',        number: '**** **** **** 5678', limit: '₹2,000 / day',  status: 'ACTIVE', color: 'success' },
-    { id: 3, name: 'Entertainment', number: '**** **** **** 9012', limit: '₹1,500 / day', status: 'FROZEN', color: 'warning' },
-    { id: 4, name: 'Utilities',   number: '**** **** **** 3456', limit: '₹3,000 / day',  status: 'ACTIVE', color: 'info' },
-  ];
+  private readonly userId = 1; // hardcoded until login session is implemented
+
+  constructor(private cardService: VirtualCardService) {}
+
+  ngOnInit(): void {
+    this.fetchCards();
+  }
+
+  fetchCards(): void {
+    this.loading = true;
+    this.cardService.getCardsByUserId(this.userId).subscribe({
+      next: (data) => { this.cards = data; this.loading = false; },
+      error: (err) => { this.errorMsg = 'Failed to load cards. Is the backend running?'; this.loading = false; console.error(err); }
+    });
+  }
+
+  generateCard(): void {
+    if (this.newCardLimit <= 0) return;
+    this.cardService.createCard(this.userId, this.newCardLimit).subscribe({
+      next: () => this.fetchCards(),
+      error: (err) => { this.errorMsg = 'Failed to create card.'; console.error(err); }
+    });
+  }
+
+  simulatePurchase(cardId: number): void {
+    this.cardService.processTransaction(cardId, 50, 'Coffee').subscribe({
+      next: () => this.fetchCards(),
+      error: (err) => { this.errorMsg = 'Transaction failed.'; console.error(err); }
+    });
+  }
 }
