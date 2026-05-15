@@ -58,6 +58,13 @@ public class VirtualCard {
     private BigDecimal dailyLimit = BigDecimal.ZERO;
 
     /**
+     * Running total of amount spent today against this card.
+     * Compared with dailyLimit to approve or decline transactions.
+     */
+    @Column(name = "balance", nullable = false, precision = 10, scale = 2)
+    private BigDecimal balance = BigDecimal.ZERO;
+
+    /**
      * Lifecycle state of the card.
      * Mapped to the MySQL ENUM column using @Enumerated(STRING)
      * so the string name (not ordinal) is stored — safe for DB refactoring.

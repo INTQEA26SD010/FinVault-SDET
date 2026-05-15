@@ -610,8 +610,88 @@ curl -X POST http://localhost:8080/api/cards \
 
 ---
 
+## 💳 Endpoint: Simulate Transaction (SCRUM-17)
+
+### `POST /api/transactions`
+
+Simulates a spend transaction against a virtual card. The system checks whether the card's daily limit would be exceeded and either **approves** or **declines** the transaction.
+
+### Request Body
+
+```json
+{
+  "cardId": 1,
+  "amount": 75.00,
+  "merchantName": "Amazon"
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `cardId` | Long | ✅ | ID of the virtual card to charge |
+| `amount` | BigDecimal | ✅ | Spend amount (must be > 0) |
+| `merchantName` | String | ✅ | Name of the merchant |
+
+### Approval / Decline Logic
+
+```
+projectedBalance = card.balance + request.amount
+
+IF projectedBalance <= card.dailyLimit
+    → status = SUCCESS
+    → card.balance is updated to projectedBalance
+    → Transaction saved with status SUCCESS
+
+IF projectedBalance > card.dailyLimit
+    → status = DECLINED
+    → card.balance is NOT modified
+    → Transaction saved with status DECLINED
+```
+
+### Response — SUCCESS (`200 OK`)
+
+```json
+{
+  "id": 1,
+  "cardId": 1,
+  "amount": 75.00,
+  "merchantName": "Amazon",
+  "timestamp": "2026-05-15T14:30:00",
+  "status": "SUCCESS"
+}
+```
+
+### Response — DECLINED (`422 Unprocessable Entity`)
+
+```json
+{
+  "id": 2,
+  "cardId": 1,
+  "amount": 9999.00,
+  "merchantName": "LuxuryStore",
+  "timestamp": "2026-05-15T14:31:00",
+  "status": "DECLINED"
+}
+```
+
+### cURL Examples
+
+```bash
+# Approved transaction
+curl -X POST http://localhost:8080/api/transactions \
+  -H "Content-Type: application/json" \
+  -d '{"cardId": 1, "amount": 50.00, "merchantName": "Starbucks"}'
+
+# Declined transaction (exceeds daily limit)
+curl -X POST http://localhost:8080/api/transactions \
+  -H "Content-Type: application/json" \
+  -d '{"cardId": 1, "amount": 99999.00, "merchantName": "OverLimit Corp"}'
+```
+
+---
+
 <p align="center">
   <b>📡 FinVault REST API Documentation</b><br>
-  <sub>Sprint 1 — SCRUM-14 | Sprint 2 — SCRUM-16</sub><br>
+  <sub>Sprint 1 — SCRUM-14 | Sprint 2 — SCRUM-16, SCRUM-17</sub><br>
   <sub>Part of the <a href="ARCHITECTURE.md">FinVault Documentation Suite</a></sub>
 </p>
