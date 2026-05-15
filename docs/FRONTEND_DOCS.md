@@ -7,8 +7,8 @@
 
 # 🅰️ FinVault — Frontend Documentation
 
-> **Ticket:** SCRUM-15 | **Framework:** Angular 21 (Standalone Components)  
-> **Styling:** Bootstrap 5 | **HTTP Client:** Angular `HttpClient` (provideHttpClient)
+> **Tickets:** SCRUM-15, SCRUM-16, SCRUM-17, SCRUM-18 | **Framework:** Angular 21 (Standalone Components)  
+> **Styling:** Bootstrap 5 | **HTTP Client:** Angular `HttpClient` (`provideHttpClient(withFetch())`)
 
 ---
 
@@ -159,36 +159,54 @@ frontend/src/
     │   └── Maps URLs to components:
     │       "/" → redirect to "/login"
     │       "/login" → LoginComponent
-    │       "/dashboard" → DashboardComponent
+    │       "/dashboard" → DashboardComponent + canActivate: [authGuard]
     │       "/**" → redirect to "/login"
     │
     ├── 📄 app.config.ts                       ← ⚙️ Application-wide providers
     │   └── provideRouter(routes)
     │   └── provideHttpClient(withFetch())
     │
+    ├── 📂 guards/
+    │   └── 📄 auth.guard.ts                   ← 🔒 Blocks /dashboard when not logged in
+    │       └── Calls authService.isLoggedIn() → redirects to /login if false
+    │
     ├── 📂 services/
-    │   └── 📄 auth.service.ts                 ← 📡 HTTP communication with backend
-    │       ├── register(payload) → POST /api/auth/register
-    │       └── Interfaces: UserRegistrationRequest, RegistrationResponse
+    │   ├── 📄 auth.service.ts                 ← 📡 Auth HTTP + sessionStorage session
+    │   │   ├── register(payload) → POST /api/auth/register
+    │   │   ├── login(payload)    → POST /api/auth/login + auto setSession()
+    │   │   ├── setSession(user)  → writes to sessionStorage
+    │   │   ├── getSession()      → reads from sessionStorage
+    │   │   ├── isLoggedIn()      → checks sessionStorage key presence
+    │   │   └── logout()          → clears sessionStorage + navigates to /login
+    │   │
+    │   └── 📄 virtual-card.service.ts        ← 📡 HTTP calls to /api/cards + /api/transactions
+    │       ├── getCardsByUserId(userId)
+    │       ├── createCard(userId, dailyLimit)
+    │       ├── processTransaction(cardId, amount, merchantName)
+    │       └── getTransactionsByCardId(cardId)
     │
     ├── 📂 login/
-    │   ├── 📄 login.component.ts              ← 📝 Registration form logic
-    │   │   ├── formData: { username, email, password }
-    │   │   ├── isLoading, successMessage, errorMessage
-    │   │   └── onSubmit() → calls AuthService.register()
-    │   └── 📄 login.component.html            ← 🎨 Bootstrap card with form
-    │       ├── Template-driven form with ngModel
-    │       ├── Client-side validation (required, minlength, email)
-    │       └── Success/error alerts, loading spinner
+    │   ├── 📄 login.component.ts              ← 📝 Login + Signup tab logic
+    │   │   ├── activeTab: 'login' | 'signup'
+    │   │   ├── onLogin() → AuthService.login() → setSession() → /dashboard
+    │   │   └── onSignup() → AuthService.register() → setSession() → /dashboard
+    │   └── 📄 login.component.html            ← 🎨 Bootstrap card with Sign In / Create Account tabs
+    │       └── Template-driven form with validation + alerts
     │
     └── 📂 dashboard/
-        ├── 📄 dashboard.component.ts          ← 📊 Mock card data (→ API in SCRUM-16)
-        │   └── mockCards[]: 4 virtual cards with name, number, limit, status
-        └── 📄 dashboard.component.html        ← 🎨 Full-page dashboard layout
-            ├── Top navbar with brand and user avatar
-            ├── Sidebar with navigation links
-            ├── Summary stats row (4 stat cards)
-            └── Virtual card grid using @for directive
+        ├── 📄 dashboard.component.ts          ← 📊 Real API calls, 3-tab sidebar, forkJoin transactions
+        │   ├── cards: VirtualCard[], loading: boolean
+        │   ├── transactions: TransactionResponse[], txLoading: boolean
+        │   ├── creatingCard: boolean, processingCardId: number | null
+        │   ├── activeNav: 'dashboard' | 'cards' | 'transactions'
+        │   ├── setActiveNav(nav) → triggers fetchAllTransactions() for tx tab
+        │   ├── fetchCards() → GET /api/cards/user/{userId}
+        │   ├── generateCard() → POST /api/cards
+        │   ├── simulatePurchase(cardId, event) → POST /api/transactions
+        │   ├── fetchAllTransactions() → forkJoin(...getTransactionsByCardId)
+        │   ├── DestroyRef + takeUntilDestroyed (prevents memory leaks)
+        │   └── ChangeDetectorRef.detectChanges() (forces re-render with withFetch())
+        └── 📄 dashboard.component.html        ← 🎨 Sidebar + Dashboard/My Cards/Transactions tabs
 ```
 
 ---
@@ -241,19 +259,19 @@ Here's the step-by-step process of how Angular starts:
 export const routes: Routes = [
   { path: '',          redirectTo: 'login', pathMatch: 'full' },
   { path: 'login',    component: LoginComponent },
-  { path: 'dashboard', component: DashboardComponent },
+  { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
   { path: '**',       redirectTo: 'login' }
 ];
 ```
 
 ### Route Breakdown
 
-| Path | Component | Behavior | URL Example |
-|:----:|:---------:|----------|:-----------:|
-| `''` | — | Redirects to `/login` (home page) | `localhost:4200/` |
-| `'login'` | `LoginComponent` | Shows registration form | `localhost:4200/login` |
-| `'dashboard'` | `DashboardComponent` | Shows card management dashboard | `localhost:4200/dashboard` |
-| `'**'` | — | Wildcard: catches all unknown URLs → redirects to `/login` | `localhost:4200/anything` |
+| Path | Component | Guard | Behavior | URL Example |
+|:----:|:---------:|:-----:|----------|:-----------:|
+| `''` | — | — | Redirects to `/login` (home page) | `localhost:4200/` |
+| `'login'` | `LoginComponent` | — | Shows login/signup tabs | `localhost:4200/login` |
+| `'dashboard'` | `DashboardComponent` | `authGuard` | Shows card management dashboard — **blocked if not logged in** | `localhost:4200/dashboard` |
+| `'**'` | — | — | Wildcard: catches all unknown URLs → redirects to `/login` | `localhost:4200/anything` |
 
 ### What is `<router-outlet />`?
 
@@ -300,23 +318,66 @@ class LoginComponent {
 
 > 💡 Angular's DI system creates one **singleton** instance of each service and shares it across all components that request it.
 
-### `AuthService` — HTTP Communication
+### `AuthService` — HTTP Communication + Session
 
 ```typescript
 @Injectable({ providedIn: 'root' })    // ← Available app-wide (singleton)
 export class AuthService {
 
   private readonly apiUrl = 'http://localhost:8080/api/auth';
-
-  constructor(private http: HttpClient) {}  // ← HttpClient injected by Angular
+  private readonly SESSION_KEY = 'finvault_user';
 
   register(payload: UserRegistrationRequest): Observable<RegistrationResponse> {
-    return this.http.post<RegistrationResponse>(
-      `${this.apiUrl}/register`,
-      payload
-    );
-    // Sends: POST http://localhost:8080/api/auth/register
-    // Body:  { "username": "...", "email": "...", "password": "..." }
+    return this.http.post<RegistrationResponse>(`${this.apiUrl}/register`, payload);
+  }
+
+  login(payload: LoginRequest): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, payload).pipe(
+      tap(res => this.setSession({ userId: res.userId, username: res.username, email: res.email }))
+    );  // ← automatically stores session on success
+  }
+
+  setSession(user: SessionUser): void {
+    sessionStorage.setItem(this.SESSION_KEY, JSON.stringify(user));
+  }
+
+  getSession(): SessionUser | null {
+    const raw = sessionStorage.getItem(this.SESSION_KEY);
+    return raw ? JSON.parse(raw) : null;
+  }
+
+  isLoggedIn(): boolean {
+    return sessionStorage.getItem(this.SESSION_KEY) !== null;
+  }
+
+  logout(): void {
+    sessionStorage.removeItem(this.SESSION_KEY);
+    this.router.navigate(['/login']);
+  }
+}
+```
+
+### `VirtualCardService` — Cards & Transactions
+
+```typescript
+@Injectable({ providedIn: 'root' })
+export class VirtualCardService {
+  private readonly baseUrl = 'http://localhost:8080/api';
+
+  getCardsByUserId(userId: number): Observable<VirtualCard[]> {
+    return this.http.get<VirtualCard[]>(`${this.baseUrl}/cards/user/${userId}`);
+  }
+
+  createCard(userId: number, dailyLimit: number): Observable<VirtualCard> {
+    return this.http.post<VirtualCard>(`${this.baseUrl}/cards`, { userId, dailyLimit });
+  }
+
+  processTransaction(cardId: number, amount: number, merchantName: string): Observable<TransactionResponse> {
+    return this.http.post<TransactionResponse>(`${this.baseUrl}/transactions`, { cardId, amount, merchantName });
+  }
+
+  getTransactionsByCardId(cardId: number): Observable<TransactionResponse[]> {
+    return this.http.get<TransactionResponse[]>(`${this.baseUrl}/transactions/card/${cardId}`);
   }
 }
 ```
@@ -356,7 +417,7 @@ provideHttpClient(withFetch())
 
 ### What It Does
 
-A centered Bootstrap card with a **user registration form** that communicates with the Spring Boot backend:
+A centered Bootstrap card with **two tabs** — Sign In and Create Account — that communicate with the Spring Boot backend:
 
 ```
 ┌──────────────────────────────────────────┐
@@ -366,20 +427,14 @@ A centered Bootstrap card with a **user registration form** that communicates wi
 │    │   💳 FinVault                    │   │  ← Blue header
 │    │   Smart-Card Budgeting System    │   │
 │    ├──────────────────────────────────┤   │
-│    │                                  │   │
-│    │   Create Your Account            │   │
-│    │                                  │   │
-│    │   ┌ ✅ Success Alert ──────────┐ │   │  ← Shows after registration
-│    │   └────────────────────────────┘ │   │
-│    │                                  │   │
-│    │   Username:  [____________]      │   │  ← ngModel → formData.username
-│    │   Email:     [____________]      │   │  ← ngModel → formData.email
-│    │   Password:  [____________]      │   │  ← ngModel → formData.password
-│    │                                  │   │
-│    │   [ Register & Continue → ]      │   │  ← Calls onSubmit()
-│    │                                  │   │
+│    │ [ Sign In ]   [ Create Account ] │   │  ← Tab switcher
 │    ├──────────────────────────────────┤   │
-│    │   FinVault © 2026                │   │
+│    │                                  │   │
+│    │   Email:     [____________]      │   │
+│    │   Password:  [____________]      │   │
+│    │                                  │   │
+│    │   [  Sign In  ]                  │   │  ← Calls onLogin()
+│    │                                  │   │
 │    └──────────────────────────────────┘   │
 │                                           │
 └──────────────────────────────────────────┘
@@ -390,36 +445,55 @@ A centered Bootstrap card with a **user registration form** that communicates wi
 ```typescript
 export class LoginComponent {
 
-  // Two-way bound to form fields via ngModel
-  formData: UserRegistrationRequest = {
-    username: '',
-    email: '',
-    password: ''
-  };
+  activeTab: 'login' | 'signup' = 'login';
 
-  isLoading = false;      // Shows spinner when true
-  successMessage = '';     // Green alert text
-  errorMessage = '';       // Red alert text
+  // Login tab fields
+  loginData: LoginRequest = { email: '', password: '' };
 
-  constructor(
-    private authService: AuthService,   // HTTP calls
-    private router: Router              // Navigation
-  ) {}
+  // Signup tab fields
+  signupData: UserRegistrationRequest = { username: '', email: '', password: '' };
 
-  onSubmit(): void {
-    this.isLoading = true;
+  isLoading = false;
+  successMessage = '';
+  errorMessage = '';
+
+  switchTab(tab: 'login' | 'signup'): void {
+    this.activeTab = tab;
     this.successMessage = '';
     this.errorMessage = '';
+  }
 
-    this.authService.register(this.formData).subscribe({
-      next: (res) => {
+  onLogin(): void {
+    this.isLoading = true;
+    this.authService.login(this.loginData).subscribe({
+      next: () => {
         this.isLoading = false;
-        this.successMessage = `${res.message} (ID: ${res.userId}). Redirecting...`;
-        setTimeout(() => this.router.navigate(['/dashboard']), 1500);  // Auto-redirect
+        // session auto-stored by AuthService.login() via tap()
+        this.router.navigate(['/dashboard']);
       },
       error: (err) => {
         this.isLoading = false;
-        this.errorMessage = err.error?.error || 'Registration failed. Please try again.';
+        this.errorMessage = err.error?.error || 'Invalid email or password.';
+      }
+    });
+  }
+
+  onSignup(): void {
+    this.isLoading = true;
+    this.authService.register(this.signupData).subscribe({
+      next: (res) => {
+        this.isLoading = false;
+        // Manually set session then navigate (register doesn't auto-login)
+        this.authService.setSession({
+          userId: res.userId,
+          username: this.signupData.username,
+          email: this.signupData.email
+        });
+        this.router.navigate(['/dashboard']);
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.errorMessage = err.error?.error || 'Registration failed.';
       }
     });
   }
@@ -430,14 +504,13 @@ export class LoginComponent {
 
 | Feature | Implementation | Purpose |
 |---------|---------------|---------|
-| **Two-way binding** | `[(ngModel)]="formData.username"` | Syncs input field ↔ TypeScript property in real-time |
-| **Required validation** | `required` attribute + `#usernameField="ngModel"` | Prevents empty submissions |
-| **Min-length** | `minlength="3"` on username, `minlength="6"` on password | Basic length validation |
+| **Tab switching** | `activeTab: 'login' \| 'signup'` + `@if` blocks | Separate Sign In and Create Account forms |
+| **Two-way binding** | `[(ngModel)]="loginData.email"` | Syncs input field ↔ TypeScript property in real-time |
+| **Required validation** | `required` + `#emailField="ngModel"` | Prevents empty submissions |
 | **Email format** | `type="email"` + `email` attribute | Angular validates email format |
-| **Error messages** | `@if (usernameField.invalid && usernameField.touched)` | Shows only after user interacts with field |
+| **Error messages** | `@if (emailField.invalid && emailField.touched)` | Shows only after user interacts |
 | **Submit guard** | `[disabled]="loginForm.invalid \|\| isLoading"` | Prevents invalid/duplicate submissions |
 | **Loading spinner** | `@if (isLoading)` → spinner inside button | Visual feedback during API call |
-| **Auto-redirect** | `setTimeout(() => router.navigate(['/dashboard']), 1500)` | Navigates after showing success message |
 
 ---
 
@@ -445,69 +518,82 @@ export class LoginComponent {
 
 ### What It Does
 
-A full-page Bootstrap dashboard layout with sidebar navigation and a virtual card grid:
+A full-page Bootstrap dashboard with a **sidebar** and **3 tabs** — Dashboard overview, My Cards (with generate + simulate), and Transactions history:
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│  💳 FinVault    Smart-Card Budgeting System       ● Online  [JD] │  ← Top Navbar
-├────────┬─────────────────────────────────────────────────────────┤
-│        │                                                         │
-│  🏠    │  Welcome back, John Doe 👋                [+ New Card]  │
-│  Dash  │  Here are your active virtual cards                     │
-│        │                                                         │
-│  💳    │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐  │
-│  Cards │  │ Total: 4 │ │Active: 3 │ │Frozen: 1 │ │₹11,500   │  │  ← Summary Stats
-│        │  └──────────┘ └──────────┘ └──────────┘ └──────────┘  │
-│  📊    │                                                         │
-│  Trans │  MY VIRTUAL CARDS                                       │
-│        │  ┌────────────┐ ┌────────────┐ ┌────────────┐ ┌─────┐ │
-│  🔔    │  │ Groceries  │ │ Fuel       │ │ Entertain. │ │Utils│ │  ← Card Grid
-│  Alerts│  │ **** 1234  │ │ **** 5678  │ │ **** 9012  │ │**** │ │
-│        │  │ ₹5,000/day │ │ ₹2,000/day │ │ ₹1,500/day │ │₹3K  │ │
-│  ⚙️    │  │ ACTIVE     │ │ ACTIVE     │ │ FROZEN     │ │ACT  │ │
-│  Sett  │  │[Freeze][Det]│ │[Freeze][Det]│ │[Freeze][Det]│ │    │ │
-│        │  └────────────┘ └────────────┘ └────────────┘ └─────┘ │
-│  🚪    │                                                         │
-│  Logout│                                                         │
-├────────┴─────────────────────────────────────────────────────────┤
+┌──────────────────────────────────────────────────────────────────────┐
+│  🏦 FinVault    Smart-Card Budgeting System       [JD] │  ← Top Navbar
+├────────┬─────────────────────────────────────────────────────────────┤
+│        │  Welcome back, Johndoe 👋                                   │
+│ 🏠     │  [Dashboard tab]                                            │
+│ Dash   │                                                             │
+│        │  ┌───────┐ ┌──────────┐ ┌───────────┐                      │
+│ 💳     │  │Cards:2│ │Limit $1K │ │Spent $50  │                      │  ← Stats
+│ Cards  │  └───────┘ └──────────┘ └───────────┘                      │
+│        │                                                             │
+│ 📊     │  CARDS OVERVIEW (read-only)                                 │
+│ Trans  │  ┌───────────┐ ┌───────────┐                               │  ← Cards
+│        │  │ **** 1234 │ │ **** 5678 │                               │
+│ 🚪     │  │ $500 limit│ │ $200 limit│                               │
+│ Logout │  └───────────┘ └───────────┘                               │
+├────────┴─────────────────────────────────────────────────────────────┤
 ```
 
-### Mock Data (Sprint 1)
+### Live API Data (No More Mock Data)
 
 ```typescript
-mockCards: MockCard[] = [
-  { id: 1, name: 'Groceries',     number: '**** **** **** 1234', limit: '₹5,000 / day',  status: 'ACTIVE', color: 'primary' },
-  { id: 2, name: 'Fuel',          number: '**** **** **** 5678', limit: '₹2,000 / day',  status: 'ACTIVE', color: 'success' },
-  { id: 3, name: 'Entertainment', number: '**** **** **** 9012', limit: '₹1,500 / day',  status: 'FROZEN', color: 'warning' },
-  { id: 4, name: 'Utilities',     number: '**** **** **** 3456', limit: '₹3,000 / day',  status: 'ACTIVE', color: 'info' },
-];
-```
+export class DashboardComponent implements OnInit {
 
-> 📌 **Mock data will be replaced** with live API calls to `GET /api/cards/user/{userId}` in **SCRUM-16**.
+  cards: VirtualCard[] = [];               // Loaded from GET /api/cards/user/{userId}
+  loading = false;                          // Shows spinner during fetch
+  creatingCard = false;                    // Shows spinner on Generate button
+  processingCardId: number | null = null;  // Per-card processing lock
 
-### `@for` Directive — Rendering the Card Grid
+  transactions: TransactionResponse[] = []; // Loaded from all cards via forkJoin
+  txLoading = false;
 
-```html
-@for (card of mockCards; track card.id) {
-  <div class="col-md-6 col-xl-3">
-    <div class="card border-0 shadow text-white" [ngClass]="'bg-' + card.color">
-      <div class="card-body p-4">
-        <span class="badge">{{ card.status }}</span>
-        <div class="font-monospace">{{ card.number }}</div>
-        <div class="fw-bold">{{ card.name }}</div>
-        <div class="small">Daily Limit: {{ card.limit }}</div>
-      </div>
-    </div>
-  </div>
+  activeNav = 'dashboard';                 // Controls which tab is visible
+
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly cdr = inject(ChangeDetectorRef);
+
+  ngOnInit(): void {
+    this.user = this.authService.getSession(); // Read from sessionStorage
+    this.fetchCards();
+  }
+
+  setActiveNav(nav: string): void {
+    this.activeNav = nav;
+    if (nav === 'transactions') {
+      this.fetchAllTransactions();   // Lazy-loads when tab is opened
+    }
+  }
+
+  fetchAllTransactions(): void {
+    // forkJoin fires all card requests in parallel, then merges + sorts
+    const requests = this.cards.map(c =>
+      this.cardService.getTransactionsByCardId(c.id)
+        .pipe(catchError(() => of([])))
+    );
+    forkJoin(requests).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (results) => {
+        this.transactions = results.flat()
+          .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        this.txLoading = false;
+        this.cdr.detectChanges();    // Required: withFetch() bypasses zone.js
+      }
+    });
+  }
 }
 ```
 
-| Syntax | Purpose |
-|--------|---------|
-| `@for (card of mockCards; track card.id)` | Angular 17+ control flow — iterates over the array |
-| `track card.id` | Tells Angular how to identify each item for efficient DOM updates |
-| `[ngClass]="'bg-' + card.color"` | Dynamically assigns Bootstrap color class (e.g., `bg-primary`) |
-| `{{ card.status }}` | Interpolation — inserts the value into the HTML |
+### The 3 Dashboard Tabs
+
+| Tab | Sidebar Button | What It Shows |
+|-----|:---:|------|
+| **Dashboard** | 🏠 | Stats row (total cards, total limit, spent today) + read-only card overview grid |
+| **My Cards** | 💳 | Generate New Card form + card grid with ☕ Simulate $50 Purchase button per card |
+| **Transactions** | 📊 | Full transaction history table (merchant, amount, status badge, timestamp) with Refresh button |
 
 ---
 
@@ -657,10 +743,61 @@ Bootstrap CSS is registered **globally** in `angular.json`, making it available 
 
 | Syntax | Name | Direction | Example |
 |--------|------|:---------:|---------|
-| `{{ value }}` | Interpolation | Component → Template | `{{ card.name }}` |
+| `{{ value }}` | Interpolation | Component → Template | `{{ card.cardNumber }}` |
 | `[property]="value"` | Property binding | Component → Template | `[disabled]="isLoading"` |
-| `(event)="handler()"` | Event binding | Template → Component | `(ngSubmit)="onSubmit()"` |
-| `[(ngModel)]="value"` | Two-way binding | Both directions | `[(ngModel)]="formData.email"` |
+| `(event)="handler()"` | Event binding | Template → Component | `(ngSubmit)="onLogin()"` |
+| `[(ngModel)]="value"` | Two-way binding | Both directions | `[(ngModel)]="loginData.email"` |
+
+### 4. `ChangeDetectorRef` — Forcing Re-Render with `withFetch()`
+
+```typescript
+private readonly cdr = inject(ChangeDetectorRef);
+
+fetchCards(): void {
+  this.cardService.getCardsByUserId(userId).subscribe({
+    next: (cards) => {
+      this.cards = cards;
+      this.cdr.detectChanges();  // ← REQUIRED
+    }
+  });
+}
+```
+
+> `provideHttpClient(withFetch())` uses the browser's native Fetch API, which resolves Promises **outside Angular's zone.js** change-detection zone. Without `cdr.detectChanges()`, the UI does not update even though the data has arrived.
+
+### 5. `DestroyRef` + `takeUntilDestroyed` — Memory Leak Prevention
+
+```typescript
+private readonly destroyRef = inject(DestroyRef);
+
+this.cardService.getCardsByUserId(userId)
+  .pipe(takeUntilDestroyed(this.destroyRef))  // ← auto-unsubscribes when component is destroyed
+  .subscribe({ next: (cards) => { ... } });
+```
+
+> Without `takeUntilDestroyed`, navigating away from the dashboard while an HTTP request is in flight could still trigger the subscribe callback and update a destroyed component's state.
+
+### 6. `forkJoin` + `catchError` — Parallel Requests
+
+```typescript
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+
+// Fire GET /api/transactions/card/{id} for every card simultaneously
+const requests = this.cards.map(c =>
+  this.cardService.getTransactionsByCardId(c.id)
+    .pipe(catchError(() => of([])))  // ← if one card fails, return empty array
+);
+
+forkJoin(requests).subscribe({
+  next: (results: TransactionResponse[][]) => {
+    // results[0] = transactions for card[0], results[1] = for card[1], ...
+    this.transactions = results.flat().sort(...);
+  }
+});
+```
+
+> `forkJoin` waits for **all** Observables to complete, then emits a single array of results. It's the RxJS equivalent of `Promise.all()`.
 
 ---
 
@@ -690,6 +827,6 @@ Bootstrap CSS is registered **globally** in `angular.json`, making it available 
 
 <p align="center">
   <b>🅰️ FinVault Frontend Documentation</b><br>
-  <sub>Sprint 1 — SCRUM-15 (Angular Login & Dashboard UI)</sub><br>
+  <sub>Sprint 1 — SCRUM-15 (Angular Login & Dashboard UI) | Sprint 2 — SCRUM-16, SCRUM-17 | Hardening — SCRUM-18</sub><br>
   <sub>Part of the <a href="ARCHITECTURE.md">FinVault Documentation Suite</a></sub>
 </p>

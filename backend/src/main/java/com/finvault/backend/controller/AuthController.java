@@ -1,5 +1,6 @@
 package com.finvault.backend.controller;
 
+import com.finvault.backend.dto.LoginRequestDto;
 import com.finvault.backend.dto.UserRegistrationDto;
 import com.finvault.backend.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -48,6 +49,17 @@ public class AuthController {
         } catch (IllegalArgumentException ex) {
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("error", ex.getMessage()));
+        }
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequestDto dto) {
+        try {
+            return ResponseEntity.ok(userService.loginUser(dto));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", ex.getMessage()));
         }
     }

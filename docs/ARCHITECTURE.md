@@ -190,19 +190,22 @@ FinVault's backend follows a strict **3-Layer Architecture** — a well-establis
         ┌──────────────────────────────────────────────┐
         │              📨 CONTROLLER LAYER              │
         │     Receives HTTP requests, returns responses │
-        │     AuthController, VirtualCardController     │
-        └───────────────────┬──────────────────────────┘
+        │   AuthController, VirtualCardController       │
+        │   TransactionController                       │
+        └──────────────────┬─────────────────────────┘
                             │  calls ↓
-        ┌───────────────────▼──────────────────────────┐
+        ┌──────────────────▼─────────────────────────┐
         │              ⚙️ SERVICE LAYER                 │
         │     Contains ALL business logic               │
-        │     UserService, VirtualCardService           │
-        └───────────────────┬──────────────────────────┘
+        │     UserService, VirtualCardService            │
+        │     TransactionService (+ daily-limit check)  │
+        └──────────────────┬─────────────────────────┘
                             │  calls ↓
-        ┌───────────────────▼──────────────────────────┐
+        ┌──────────────────▼─────────────────────────┐
         │              💾 REPOSITORY LAYER              │
         │     Talks to the database via JPA             │
         │     UserRepository, VirtualCardRepository     │
+        │     TransactionRepository                     │
         └──────────────────────────────────────────────┘
 ```
 
@@ -295,20 +298,28 @@ FinVault/                                          ← 📁 Monorepo root
 │   │   │   │   ├── config/
 │   │   │   │   │   └── SecurityConfig.java        ← 🔒 BCrypt bean + Security filter chain
 │   │   │   │   ├── controller/
-│   │   │   │   │   ├── AuthController.java        ← 🎯 POST /api/auth/register
-│   │   │   │   │   └── VirtualCardController.java ← 🎯 GET  /api/cards/user/{userId}
+│   │   │   │   │   ├── AuthController.java        ← 🎯 POST /api/auth/register, POST /api/auth/login
+│   │   │   │   │   ├── VirtualCardController.java ← 🎯 GET  /api/cards/user/{userId}, POST /api/cards
+│   │   │   │   │   └── TransactionController.java ← 🎯 POST /api/transactions, GET /api/transactions/card/{id}
 │   │   │   │   ├── dto/
 │   │   │   │   │   ├── UserRegistrationDto.java   ← 📨 Inbound: registration request body
-│   │   │   │   │   └── VirtualCardResponseDto.java← 📤 Outbound: card data (CVV excluded)
+│   │   │   │   │   ├── LoginRequestDto.java       ← 📨 Inbound: { email, password }
+│   │   │   │   │   ├── LoginResponseDto.java      ← 📤 Outbound: { userId, username, email, message }
+│   │   │   │   │   ├── VirtualCardResponseDto.java← 📤 Outbound: card data (cvv + balance included)
+│   │   │   │   │   ├── TransactionRequestDto.java ← 📨 Inbound: { cardId, amount, merchantName }
+│   │   │   │   │   └── TransactionResponseDto.java← 📤 Outbound: { id, cardId, amount, timestamp, status }
 │   │   │   │   ├── entity/
 │   │   │   │   │   ├── User.java                  ← 💾 @Entity → users table
-│   │   │   │   │   └── VirtualCard.java           ← 💾 @Entity → virtual_cards table
+│   │   │   │   │   ├── VirtualCard.java           ← 💾 @Entity → virtual_cards table
+│   │   │   │   │   └── Transaction.java           ← 💾 @Entity → transactions table
 │   │   │   │   ├── repository/
 │   │   │   │   │   ├── UserRepository.java        ← 🔍 JpaRepository<User, Long>
-│   │   │   │   │   └── VirtualCardRepository.java ← 🔍 JpaRepository<VirtualCard, Long>
+│   │   │   │   │   ├── VirtualCardRepository.java ← 🔍 JpaRepository<VirtualCard, Long>
+│   │   │   │   │   └── TransactionRepository.java ← 🔍 JpaRepository<Transaction, Long> + findByVirtualCardId...
 │   │   │   │   └── service/
-│   │   │   │       ├── UserService.java           ← ⚙️ Registration + BCrypt hashing
-│   │   │   │       └── VirtualCardService.java    ← ⚙️ Card fetching + DTO mapping
+│   │   │   │       ├── UserService.java           ← ⚙️ Registration + login + BCrypt hashing
+│   │   │   │       ├── VirtualCardService.java    ← ⚙️ Card creation + fetching + DTO mapping
+│   │   │   │       └── TransactionService.java    ← ⚙️ Transaction processing + daily-limit check
 │   │   │   └── resources/
 │   │   │       └── application.properties         ← ⚙️ MySQL, JPA, server config
 │   │   └── test/
@@ -322,16 +333,19 @@ FinVault/                                          ← 📁 Monorepo root
 │   │   ├── app/
 │   │   │   ├── app.ts                             ← 🅰️ Root component (shell)
 │   │   │   ├── app.html                           ← 🅰️ <router-outlet /> only
-│   │   │   ├── app.routes.ts                      ← 🛤️ Application routing table
+│   │   │   ├── app.routes.ts                      ← 🛤️ Application routing table (with AuthGuard)
 │   │   │   ├── app.config.ts                      ← ⚙️ App providers (Router, HttpClient)
+│   │   │   ├── guards/
+│   │   │   │   └── auth.guard.ts                  ← 🔒 Blocks /dashboard if not logged in
 │   │   │   ├── services/
-│   │   │   │   └── auth.service.ts                ← 📡 HTTP calls to /api/auth
+│   │   │   │   ├── auth.service.ts                ← 📡 HTTP calls to /api/auth + sessionStorage session
+│   │   │   │   └── virtual-card.service.ts        ← 📡 HTTP calls to /api/cards + /api/transactions
 │   │   │   ├── login/
-│   │   │   │   ├── login.component.ts             ← 📝 Registration form logic
-│   │   │   │   └── login.component.html           ← 🎨 Bootstrap login card UI
+│   │   │   │   ├── login.component.ts             ← 📝 Login + Signup tab logic
+│   │   │   │   └── login.component.html           ← 🎨 Bootstrap card with two-tab form
 │   │   │   └── dashboard/
-│   │   │       ├── dashboard.component.ts         ← 📊 Mock card data (→ API in SCRUM-16)
-│   │   │       └── dashboard.component.html       ← 🎨 Sidebar + card grid layout
+│   │   │       ├── dashboard.component.ts         ← 📊 Real API calls, 3-tab sidebar, forkJoin transactions
+│   │   │       └── dashboard.component.html       ← 🎨 Sidebar + Dashboard/My Cards/Transactions tabs
 │   │   ├── styles.css                             ← 🎨 Global styles
 │   │   ├── index.html                             ← 📄 SPA shell
 │   │   └── main.ts                                ← 🚀 Angular bootstrap entry point
@@ -390,6 +404,6 @@ FinVault/                                          ← 📁 Monorepo root
 
 <p align="center">
   <b>📐 FinVault Architecture Document</b><br>
-  <sub>Sprint 1 — SCRUM-9 (Backend Init) + SCRUM-10 (Frontend Init)</sub><br>
+  <sub>Sprint 1 — SCRUM-9 (Backend Init) + SCRUM-10 (Frontend Init) | Sprint 2 — SCRUM-16, SCRUM-17 | Hardening — SCRUM-18</sub><br>
   <sub>Part of the <a href="API_DOCS.md">FinVault Documentation Suite</a></sub>
 </p>

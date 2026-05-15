@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * REST controller for transaction simulation.
  * Base path: /api/transactions
@@ -18,6 +20,20 @@ import org.springframework.web.bind.annotation.*;
 public class TransactionController {
 
     private final TransactionService transactionService;
+
+    /**
+     * GET /api/transactions/card/{cardId}
+     *
+     * Returns all transactions for the given virtual card, ordered newest-first.
+     * Returns an empty list [] when no transactions exist yet.
+     *
+     * @param cardId the virtual card's primary key
+     */
+    @GetMapping("/card/{cardId}")
+    public ResponseEntity<List<TransactionResponseDto>> getByCard(
+            @PathVariable Long cardId) {
+        return ResponseEntity.ok(transactionService.getTransactionsByCardId(cardId));
+    }
 
     /**
      * POST /api/transactions

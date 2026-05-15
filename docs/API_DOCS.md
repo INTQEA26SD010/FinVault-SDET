@@ -22,11 +22,15 @@
 | 4 | [FinVault API Overview](#-finvault-api-overview) | Quick reference of all endpoints |
 | 5 | [The 3-Layer Request Flow](#-the-3-layer-request-flow) | How a request travels through the backend |
 | 6 | [Endpoint 1: Register User](#-endpoint-1-register-user) | `POST /api/auth/register` |
-| 7 | [Endpoint 2: Get User's Virtual Cards](#-endpoint-2-get-users-virtual-cards) | `GET /api/cards/user/{userId}` |
-| 8 | [Why DTOs? — Anti-Pattern Prevention](#-why-dtos--anti-pattern-prevention) | Why we never return @Entity directly |
-| 9 | [Security Configuration (Sprint 1)](#-security-configuration-sprint-1) | BCrypt + permitAll baseline |
-| 10 | [Testing the API with cURL](#-testing-the-api-with-curl) | Ready-to-use commands |
-| 11 | [Glossary](#-glossary) | Key API terms |
+| 7 | [Endpoint 2: Login User](#-endpoint-2-login-user) | `POST /api/auth/login` |
+| 8 | [Endpoint 3: Get User's Virtual Cards](#-endpoint-3-get-users-virtual-cards) | `GET /api/cards/user/{userId}` |
+| 9 | [Endpoint 4: Create Virtual Card](#-endpoint-4-create-virtual-card) | `POST /api/cards` |
+| 10 | [Endpoint 5: Simulate Transaction](#-endpoint-5-simulate-transaction) | `POST /api/transactions` |
+| 11 | [Endpoint 6: Get Transactions by Card](#-endpoint-6-get-transactions-by-card) | `GET /api/transactions/card/{cardId}` |
+| 12 | [Why DTOs? — Anti-Pattern Prevention](#-why-dtos--anti-pattern-prevention) | Why we never return @Entity directly |
+| 13 | [Security Configuration](#-security-configuration) | BCrypt + permitAll baseline |
+| 14 | [Testing the API with cURL](#-testing-the-api-with-curl) | Ready-to-use commands |
+| 15 | [Glossary](#-glossary) | Key API terms |
 
 ---
 
@@ -105,11 +109,12 @@ Every API response includes a **status code** — a 3-digit number that describe
 
 | Code | Name | When FinVault Returns It |
 |:----:|------|--------------------------|
-| `200` | OK | Successfully retrieved cards (`GET /api/cards/user/{id}`) |
-| `201` | Created | Successfully registered a new user (`POST /api/auth/register`) |
-| `400` | Bad Request | Email already registered; invalid input data |
+| `200` | OK | Cards retrieved, login success, transaction response |
+| `201` | Created | New user registered (`POST /api/auth/register`), new card created (`POST /api/cards`) |
+| `400` | Bad Request | Email already registered; invalid credentials on login |
 | `401` | Unauthorized | Invalid/missing JWT token (future sprint) |
-| `404` | Not Found | Resource doesn't exist (future sprint) |
+| `404` | Not Found | User/card not found |
+| `422` | Unprocessable Entity | Transaction declined — daily limit would be exceeded |
 | `500` | Internal Server Error | Unhandled server exception (should never happen in production) |
 
 ---
@@ -121,7 +126,11 @@ Every API response includes a **status code** — a 3-digit number that describe
 | Method | Endpoint | Purpose | Request Body | Response |
 |:------:|----------|---------|:------------:|----------|
 | `POST` | `/api/auth/register` | Register new user | ✅ JSON | `201` + userId |
+| `POST` | `/api/auth/login` | Login existing user | ✅ JSON | `200` + userId, username, email |
 | `GET` | `/api/cards/user/{userId}` | Get user's cards | ❌ None | `200` + card list |
+| `POST` | `/api/cards` | Create a new virtual card | ✅ JSON | `201` + new card |
+| `POST` | `/api/transactions` | Simulate a purchase | ✅ JSON | `200` SUCCESS or `422` DECLINED |
+| `GET` | `/api/transactions/card/{cardId}` | Get transaction history for a card | ❌ None | `200` + transaction list |
 
 ### Backend Package Structure
 
@@ -129,20 +138,32 @@ Every API response includes a **status code** — a 3-digit number that describe
 com.finvault.backend
 │
 ├── 📂 controller/                    ← 🎯 HTTP layer — receives requests, returns responses
-│   ├── AuthController.java           ← POST /api/auth/register
-│   └── VirtualCardController.java    ← GET  /api/cards/user/{userId}
+│   ├── AuthController.java           ← POST /api/auth/register, POST /api/auth/login
+│   ├── VirtualCardController.java    ← GET  /api/cards/user/{userId}, POST /api/cards
+│   └── TransactionController.java    ← POST /api/transactions, GET /api/transactions/card/{id}
 │
 ├── 📂 dto/                           ← 📦 Data Transfer Objects — API contract
 │   ├── UserRegistrationDto.java      ← Inbound: { username, email, password }
-│   └── VirtualCardResponseDto.java   ← Outbound: { id, cardNumber, dailyLimit, status }
+│   ├── LoginRequestDto.java          ← Inbound: { email, password }
+│   ├── LoginResponseDto.java         ← Outbound: { userId, username, email, message }
+│   ├── VirtualCardResponseDto.java   ← Outbound: { id, cardNumber, cvv, dailyLimit, balance }
+│   ├── TransactionRequestDto.java    ← Inbound: { cardId, amount, merchantName }
+│   └── TransactionResponseDto.java   ← Outbound: { id, cardId, amount, merchantName, timestamp, status }
 │
 ├── 📂 service/                       ← ⚙️ Business logic — called by controllers
-│   ├── UserService.java              ← Registration logic + BCrypt hashing
-│   └── VirtualCardService.java       ← Card fetching + Entity→DTO mapping
+│   ├── UserService.java              ← Registration + login logic + BCrypt hashing
+│   ├── VirtualCardService.java       ← Card creation + fetching + Entity→DTO mapping
+│   └── TransactionService.java       ← Transaction processing + daily-limit check
 │
 ├── 📂 repository/                    ← 💾 Data access — talks to MySQL
 │   ├── UserRepository.java           ← JpaRepository<User, Long>
-│   └── VirtualCardRepository.java    ← JpaRepository<VirtualCard, Long>
+│   ├── VirtualCardRepository.java    ← JpaRepository<VirtualCard, Long>
+│   └── TransactionRepository.java    ← JpaRepository<Transaction, Long> + custom finder
+│
+├── 📂 entity/                        ← 💾 JPA domain model
+│   ├── User.java                     ← @Entity → users table
+│   ├── VirtualCard.java              ← @Entity → virtual_cards table
+│   └── Transaction.java              ← @Entity → transactions table
 │
 └── 📂 config/
     └── SecurityConfig.java           ← 🔒 BCryptPasswordEncoder bean + open filter chain
@@ -273,7 +294,93 @@ POST /api/auth/register
 
 ---
 
-## 🃏 Endpoint 2: Get User's Virtual Cards
+## 🔐 Endpoint 2: Login User
+
+### `POST /api/auth/login`
+
+Authenticates an existing user by verifying their email and password against the BCrypt hash stored in the database.
+
+### Request
+
+```http
+POST /api/auth/login HTTP/1.1
+Host: localhost:8080
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "password": "SecurePass123"
+}
+```
+
+### Request Body Fields
+
+| Field | Type | Required | Notes |
+|:-----:|:----:|:--------:|-------|
+| `email` | `string` | ✅ | Must match a registered email |
+| `password` | `string` | ✅ | Compared to BCrypt hash via `BCryptPasswordEncoder.matches()` |
+
+### Success Response — `200 OK`
+
+```json
+{
+  "userId": 1,
+  "username": "johndoe",
+  "email": "john@example.com",
+  "message": "Login successful"
+}
+```
+
+> 📌 The frontend stores `{ userId, username, email }` in `sessionStorage` under the key `finvault_user`. This session data powers the `AuthGuard` and dashboard user display.
+
+### Error Response — `400 Bad Request`
+
+```json
+{
+  "error": "Invalid email or password"
+}
+```
+
+### Internal Flow
+
+```
+POST /api/auth/login
+       │
+       ▼
+┌─ AuthController ─────────────────────────────────────────────┐
+│  @PostMapping("/login")                                      │
+│  login(@RequestBody LoginRequestDto dto)                     │
+│       │                                                      │
+│       ▼                                                      │
+│  ┌─ UserService ──────────────────────────────────────────┐  │
+│  │  1. findByEmail(dto.getEmail())                        │  │
+│  │     └── Not found → throw IllegalArgumentException     │  │
+│  │                                                        │  │
+│  │  2. passwordEncoder.matches(dto.getPassword(),         │  │
+│  │                             user.getPasswordHash())    │  │
+│  │     └── No match → throw IllegalArgumentException      │  │
+│  │                                                        │  │
+│  │  3. return LoginResponseDto {                          │  │
+│  │       userId, username, email, "Login successful"      │  │
+│  │     }                                                  │  │
+│  └────────────────────────────────────────────────────────┘  │
+│       │                                                      │
+│       ▼                                                      │
+│  ResponseEntity.ok(loginResponse)  →  200 OK                 │
+└──────────────────────────────────────────────────────────────┘
+```
+
+### cURL Example
+
+```bash
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "john@example.com", "password": "SecurePass123"}'
+```
+
+---
+
+## 🃏 Endpoint 3: Get User's Virtual Cards
 
 ### `GET /api/cards/user/{userId}`
 
@@ -313,16 +420,33 @@ Host: localhost:8080
 
 > 📌 Returns `[]` (empty array) if the user has no cards — **never** returns `null`.
 
+### Success Response — `200 OK`
+
+```json
+[
+  {
+    "id": 1,
+    "cardNumber": "4111111111111111",
+    "cvv": "847",
+    "dailyLimit": 500.00,
+    "balance": 75.00
+  }
+]
+```
+
+> 📌 Returns `[]` (empty array) if the user has no cards — **never** returns `null`.
+
 ### Response Fields
 
 | Field | Type | Description | Sensitive? |
 |:-----:|:----:|-------------|:----------:|
 | `id` | `Long` | Card's database ID | No |
 | `cardNumber` | `String` | 16-digit card number | Moderate |
-| `dailyLimit` | `BigDecimal` | Maximum daily spend in base currency | No |
-| `status` | `String` | One of: `ACTIVE`, `FROZEN`, `EXPIRED`, `CANCELLED` | No |
-| ~~`cvv`~~ | ~~`String`~~ | ~~3-digit security code~~ | ⛔ **EXCLUDED** |
+| `cvv` | `String` | 3-digit security code | ⚠️ Present (display only in UI) |
+| `dailyLimit` | `BigDecimal` | Maximum daily spend cap | No |
+| `balance` | `BigDecimal` | Amount spent today (resets per day in future sprint) | No |
 | ~~`userId`~~ | ~~`Long`~~ | ~~Foreign key to users table~~ | ⛔ **EXCLUDED** |
+| ~~`status`~~ | ~~`String`~~ | ~~Card lifecycle state~~ | ⛔ **EXCLUDED** (future sprint) |
 
 ### Internal Flow Diagram
 
@@ -549,7 +673,7 @@ curl http://localhost:8080/api/cards/user/1
 
 ---
 
-## 🆕 Endpoint 3: Create Virtual Card (Sprint 2 — SCRUM-16)
+## 🆕 Endpoint 4: Create Virtual Card
 
 ### `POST /api/cards`
 
@@ -610,7 +734,7 @@ curl -X POST http://localhost:8080/api/cards \
 
 ---
 
-## 💳 Endpoint: Simulate Transaction (SCRUM-17)
+## 💳 Endpoint 5: Simulate Transaction
 
 ### `POST /api/transactions`
 
@@ -690,8 +814,99 @@ curl -X POST http://localhost:8080/api/transactions \
 
 ---
 
+## 📜 Endpoint 6: Get Transactions by Card
+
+### `GET /api/transactions/card/{cardId}`
+
+Returns all transactions recorded against a specific virtual card, ordered newest-first. Used by the Angular dashboard's **Transactions** tab to build the full history table.
+
+### Request
+
+```http
+GET /api/transactions/card/1 HTTP/1.1
+Host: localhost:8080
+```
+
+### Path Parameter
+
+| Parameter | Type | Location | Required | Description |
+|:---------:|:----:|:--------:|:--------:|-------------|
+| `cardId` | `Long` | URL path | ✅ | The database ID of the virtual card |
+
+### Success Response — `200 OK`
+
+```json
+[
+  {
+    "id": 3,
+    "cardId": 1,
+    "amount": 50.00,
+    "merchantName": "Coffee Shop",
+    "timestamp": "2026-05-16T14:30:00",
+    "status": "SUCCESS"
+  },
+  {
+    "id": 1,
+    "cardId": 1,
+    "amount": 9999.00,
+    "merchantName": "OverLimit Corp",
+    "timestamp": "2026-05-16T10:00:00",
+    "status": "DECLINED"
+  }
+]
+```
+
+> 📌 Returns `[]` when no transactions exist for this card. Ordered **newest first** (descending by `timestamp`).
+
+### Response Fields
+
+| Field | Type | Description |
+|:-----:|:----:|---------|
+| `id` | `Long` | Transaction's database ID |
+| `cardId` | `Long` | ID of the card this transaction belongs to |
+| `amount` | `BigDecimal` | Transaction amount |
+| `merchantName` | `String` | Merchant the transaction was attempted at |
+| `timestamp` | `LocalDateTime` | When the transaction was recorded (`@PrePersist`) |
+| `status` | `String` | `SUCCESS` or `DECLINED` |
+
+### Internal Flow
+
+```
+GET /api/transactions/card/1
+       │
+       ▼
+┌─ TransactionController ──────────────────────────────────────┐
+│  @GetMapping("/card/{cardId}")                               │
+│  getByCard(@PathVariable Long cardId)                        │
+│       │                                                      │
+│       ▼                                                      │
+│  ┌─ TransactionService ───────────────────────────────────┐  │
+│  │  @Transactional(readOnly = true)                       │  │
+│  │  findByVirtualCardIdOrderByTimestampDesc(cardId)       │  │
+│  │     └── SELECT * FROM transactions                     │  │
+│  │            WHERE virtual_card_id = 1                   │  │
+│  │            ORDER BY timestamp DESC                     │  │
+│  │                                                        │  │
+│  │  stream().map(tx → toResponseDto(tx)).toList()         │  │
+│  └────────────────────────────────────────────────────────┘  │
+│       │                                                      │
+│       ▼                                                      │
+│  ResponseEntity.ok(transactions)  →  200 OK + JSON array     │
+└──────────────────────────────────────────────────────────────┘
+```
+
+> ⚠️ **Implementation note:** `@Transactional(readOnly = true)` is required on this method because `spring.jpa.open-in-view=false` closes the Hibernate session before the service returns. Without it, accessing `tx.getVirtualCard().getId()` on the lazy proxy inside `toResponseDto()` would throw a `LazyInitializationException`.
+
+### cURL Example
+
+```bash
+curl http://localhost:8080/api/transactions/card/1
+```
+
+---
+
 <p align="center">
   <b>📡 FinVault REST API Documentation</b><br>
-  <sub>Sprint 1 — SCRUM-14 | Sprint 2 — SCRUM-16, SCRUM-17</sub><br>
+  <sub>Sprint 1 — SCRUM-14 | Sprint 2 — SCRUM-16, SCRUM-17 | Hardening — SCRUM-18</sub><br>
   <sub>Part of the <a href="ARCHITECTURE.md">FinVault Documentation Suite</a></sub>
 </p>
