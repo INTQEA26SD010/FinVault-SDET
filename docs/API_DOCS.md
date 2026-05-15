@@ -549,8 +549,69 @@ curl http://localhost:8080/api/cards/user/1
 
 ---
 
+## 🆕 Endpoint 3: Create Virtual Card (Sprint 2 — SCRUM-16)
+
+### `POST /api/cards`
+
+Creates a new virtual card for a registered user with a configurable daily spending limit.
+
+### Request Body
+
+| Field | Type | Required | Description |
+|:-----:|:----:|:--------:|-------------|
+| `userId` | `Long` | ✅ | The ID of the user who will own this card |
+| `dailyLimit` | `BigDecimal` | ✅ | Maximum daily spend limit (e.g., `500.00`) |
+
+```json
+{
+  "userId": 1,
+  "dailyLimit": 500.00
+}
+```
+
+### Success Response — `201 CREATED`
+
+```json
+{
+  "id": 3,
+  "cardNumber": "4829103746582910",
+  "dailyLimit": 500.00,
+  "status": "ACTIVE"
+}
+```
+
+### Error Response — `500 Internal Server Error`
+
+Returned when the `userId` does not match any existing user.
+
+```json
+{
+  "error": "User not found with ID: 99"
+}
+```
+
+### Auto-Generation Logic
+
+| Field | Logic |
+|:-----:|-------|
+| `cardNumber` | Random 16-digit numeric string generated via `java.util.Random` |
+| `cvv` | Random 3-digit string (`000`–`999`) generated via `String.format("%03d", ...)` |
+| `expiryDate` | Calculated as **current date + 3 years** using `LocalDate.now().plusYears(3)` |
+| `balance` | Defaults to `0.0` |
+| `status` | Defaults to `ACTIVE` |
+
+### cURL Example
+
+```bash
+curl -X POST http://localhost:8080/api/cards \
+  -H "Content-Type: application/json" \
+  -d '{"userId": 1, "dailyLimit": 500.00}'
+```
+
+---
+
 <p align="center">
   <b>📡 FinVault REST API Documentation</b><br>
-  <sub>Sprint 1 — SCRUM-14 (REST APIs for User Registration and Card Fetching)</sub><br>
+  <sub>Sprint 1 — SCRUM-14 | Sprint 2 — SCRUM-16</sub><br>
   <sub>Part of the <a href="ARCHITECTURE.md">FinVault Documentation Suite</a></sub>
 </p>
