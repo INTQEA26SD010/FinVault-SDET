@@ -17,6 +17,7 @@ export interface TransactionResponse {
   amount: number;
   merchantName: string;
   timestamp: string;
+  status: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -42,5 +43,10 @@ export class VirtualCardService {
       amount,
       merchantName
     });
+  }
+
+  /** Fetch all transactions for a given card, ordered by most recent first */
+  getTransactionsByCardId(cardId: number): Observable<TransactionResponse[]> {
+    return this.http.get<TransactionResponse[]>(`${this.baseUrl}/transactions/card/${cardId}`);
   }
 }

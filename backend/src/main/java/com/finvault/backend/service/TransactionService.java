@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * Core transaction-processing engine for FinVault.
@@ -71,6 +72,20 @@ public class TransactionService {
 
         Transaction saved = transactionRepository.save(transaction);
         return toResponseDto(saved);
+    }
+
+    /**
+     * Returns all transactions for the given card, newest first.
+     *
+     * @param cardId the virtual card's primary key
+     * @return list of transaction response DTOs, may be empty
+     */
+    public List<TransactionResponseDto> getTransactionsByCardId(Long cardId) {
+        return transactionRepository
+                .findByVirtualCardIdOrderByTimestampDesc(cardId)
+                .stream()
+                .map(this::toResponseDto)
+                .toList();
     }
 
     // ── Private helpers ──────────────────────────────────────────────

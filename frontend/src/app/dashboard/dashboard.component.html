@@ -4,7 +4,7 @@
   <!-- Top Navigation Bar -->
   <nav class="navbar navbar-dark bg-primary px-4 shadow" style="min-height:56px;">
     <span class="navbar-brand fw-bold fs-4 mb-0">
-      <span class="me-2">💳</span>FinVault
+      <span class="me-2"></span>FinVault
     </span>
     <span class="navbar-text text-white-50 small d-none d-md-inline ms-2">Smart-Card Budgeting System</span>
     <div class="ms-auto d-flex align-items-center gap-3">
@@ -22,31 +22,35 @@
     <aside class="bg-dark border-end border-secondary d-none d-md-flex flex-column py-4 px-3"
            style="width: 220px;">
       <nav class="nav flex-column gap-1">
-        <button class="nav-link btn text-start rounded px-3 py-2 fw-semibold"
+        <button type="button"
+                class="nav-link btn text-start rounded px-3 py-2 fw-semibold"
                 [class.text-white]="activeNav === 'dashboard'"
                 [class.bg-primary]="activeNav === 'dashboard'"
                 [class.text-white-50]="activeNav !== 'dashboard'"
-                (click)="activeNav = 'dashboard'">
-          🏠 Dashboard
+                (click)="setActiveNav('dashboard')">
+          ðŸ  Dashboard
         </button>
-        <button class="nav-link btn text-start rounded px-3 py-2 fw-semibold"
+        <button type="button"
+                class="nav-link btn text-start rounded px-3 py-2 fw-semibold"
                 [class.text-white]="activeNav === 'cards'"
                 [class.bg-primary]="activeNav === 'cards'"
                 [class.text-white-50]="activeNav !== 'cards'"
-                (click)="activeNav = 'cards'">
-          💳 My Cards
+                (click)="setActiveNav('cards')">
+           My Cards
         </button>
-        <button class="nav-link btn text-start rounded px-3 py-2 fw-semibold"
+        <button type="button"
+                class="nav-link btn text-start rounded px-3 py-2 fw-semibold"
                 [class.text-white]="activeNav === 'transactions'"
                 [class.bg-primary]="activeNav === 'transactions'"
                 [class.text-white-50]="activeNav !== 'transactions'"
-                (click)="activeNav = 'transactions'">
-          📊 Transactions
+                (click)="setActiveNav('transactions')">
+          ðŸ“Š Transactions
         </button>
       </nav>
       <div class="mt-auto">
-        <button class="nav-link btn text-start text-danger px-3 py-2 w-100" (click)="logout()">
-          🚪 Logout
+        <button type="button" class="nav-link btn text-start text-danger px-3 py-2 w-100"
+                (click)="logout()">
+          ðŸšª Logout
         </button>
       </div>
     </aside>
@@ -54,127 +58,295 @@
     <!-- Main Content -->
     <main class="flex-grow-1 p-4 overflow-auto">
 
-      <!-- Welcome Banner -->
+      <!-- Welcome Banner â€” always visible -->
       <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
         <div>
-          <h4 class="text-white mb-0">Welcome back, <span class="text-primary">{{ user?.username }}</span> 👋</h4>
-          <small class="text-white-50">Here's an overview of your virtual cards</small>
+          <h4 class="text-white mb-0">Welcome back, <span class="text-primary">{{ user?.username }}</span> ðŸ‘‹</h4>
+          <small class="text-white-50">
+            @if (activeNav === 'dashboard') { Here's an overview of your virtual cards }
+            @if (activeNav === 'cards') { Manage and simulate purchases on your virtual cards }
+            @if (activeNav === 'transactions') { Full transaction history across all your cards }
+          </small>
         </div>
         <span class="badge bg-primary fs-6 px-3 py-2 mt-2 mt-md-0">{{ cards.length }} Card(s)</span>
       </div>
 
-      <!-- Summary Stats Row -->
-      <div class="row g-3 mb-4">
-        <div class="col-sm-6 col-lg-4">
-          <div class="card bg-primary text-white border-0 shadow-sm h-100">
-            <div class="card-body text-center py-4">
-              <div class="fs-2 fw-bold">{{ cards.length }}</div>
-              <div class="small text-white-50">Total Cards</div>
-            </div>
-          </div>
+      <!-- Error banner â€” always visible -->
+      @if (errorMsg) {
+        <div class="alert alert-danger py-2 d-flex align-items-center mb-4" role="alert">
+          <span class="me-2">âš ï¸</span>{{ errorMsg }}
+          <button type="button" class="btn-close btn-close-white ms-auto btn-sm"
+                  aria-label="Dismiss" (click)="errorMsg = ''"></button>
         </div>
-        <div class="col-sm-6 col-lg-4">
-          <div class="card bg-success text-white border-0 shadow-sm h-100">
-            <div class="card-body text-center py-4">
-              <div class="fs-2 fw-bold">${{ totalLimit | number:'1.2-2' }}</div>
-              <div class="small text-white-50">Total Daily Limit</div>
-            </div>
-          </div>
-        </div>
-        <div class="col-sm-6 col-lg-4">
-          <div class="card bg-warning text-dark border-0 shadow-sm h-100">
-            <div class="card-body text-center py-4">
-              <div class="fs-2 fw-bold">${{ totalSpent | number:'1.2-2' }}</div>
-              <div class="small">Spent Today</div>
-            </div>
-          </div>
-        </div>
-      </div>
+      }
 
-      <!-- Generate New Card -->
-      <div class="card bg-secondary border-0 shadow-sm mb-4">
-        <div class="card-body d-flex flex-wrap align-items-end gap-3">
-          <div>
-            <label class="form-label text-white small mb-1">Daily Limit ($)</label>
-            <input type="number" class="form-control form-control-sm" [(ngModel)]="newCardLimit" min="1" style="width:160px" />
+      <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• DASHBOARD TAB â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+      @if (activeNav === 'dashboard') {
+
+        <!-- Summary Stats Row -->
+        <div class="row g-3 mb-4">
+          <div class="col-sm-6 col-lg-4">
+            <div class="card bg-primary text-white border-0 shadow-sm h-100">
+              <div class="card-body text-center py-4">
+                <div class="fs-2 fw-bold">{{ cards.length }}</div>
+                <div class="small text-white-50">Total Cards</div>
+              </div>
+            </div>
           </div>
-          <button class="btn btn-primary btn-sm px-4" (click)="generateCard()">
-            + Generate New Card
+          <div class="col-sm-6 col-lg-4">
+            <div class="card bg-success text-white border-0 shadow-sm h-100">
+              <div class="card-body text-center py-4">
+                <div class="fs-2 fw-bold">${{ totalLimit | number:'1.2-2' }}</div>
+                <div class="small text-white-50">Total Daily Limit</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-lg-4">
+            <div class="card bg-warning text-dark border-0 shadow-sm h-100">
+              <div class="card-body text-center py-4">
+                <div class="fs-2 fw-bold">${{ totalSpent | number:'1.2-2' }}</div>
+                <div class="small">Spent Today</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cards overview (read-only) -->
+        <h6 class="text-white-50 text-uppercase small mb-3" style="letter-spacing:1px;">Cards Overview</h6>
+
+        @if (loading) {
+          <div class="text-center text-white-50 py-5">
+            <div class="spinner-border" role="status"><span class="visually-hidden">Loadingâ€¦</span></div>
+            <div class="small mt-2">Loading cardsâ€¦</div>
+          </div>
+        }
+
+        @if (!loading && cards.length === 0) {
+          <div class="text-center text-white-50 py-5">
+            <div class="fs-1 mb-2"></div>
+            <p class="mb-3">No virtual cards yet.</p>
+            <button type="button" class="btn btn-primary btn-sm" (click)="setActiveNav('cards')">
+              + Generate Your First Card
+            </button>
+          </div>
+        }
+
+        @if (!loading && cards.length > 0) {
+          <div class="row g-3">
+            @for (card of cards; track card.id) {
+              <div class="col-md-6 col-xl-4">
+                <div class="card border-0 shadow text-white"
+                     style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
+                  <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                      <span class="badge bg-white bg-opacity-25 text-white px-2 py-1 small">VIRTUAL</span>
+                      <span class="opacity-75 fs-5"></span>
+                    </div>
+                    <div class="mb-3 font-monospace fs-6 fw-semibold" style="letter-spacing:2px;">
+                      {{ card.cardNumber.substring(0,4) }} {{ card.cardNumber.substring(4,8) }}
+                      {{ card.cardNumber.substring(8,12) }} {{ card.cardNumber.substring(12) }}
+                    </div>
+                    <hr class="border-white border-opacity-25 my-3">
+                    <div class="d-flex justify-content-between small">
+                      <div>
+                        <div class="text-white-50">Daily Limit</div>
+                        <div class="fw-bold">${{ card.dailyLimit | number:'1.2-2' }}</div>
+                      </div>
+                      <div class="text-end">
+                        <div class="text-white-50">Spent Today</div>
+                        <div class="fw-bold">${{ card.balance | number:'1.2-2' }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      }
+
+      <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• MY CARDS TAB â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+      @if (activeNav === 'cards') {
+
+        <!-- Generate New Card â€” wrapped in a real <form> so submit semantics are explicit -->
+        <div class="card bg-secondary border-0 shadow-sm mb-4">
+          <div class="card-body">
+            <h6 class="text-white mb-3">âš¡ Generate New Card</h6>
+            <form (ngSubmit)="generateCard()" #generateForm="ngForm"
+                  class="d-flex flex-wrap align-items-end gap-3">
+              <div>
+                <label for="newCardLimit" class="form-label text-white small mb-1">Daily Limit ($)</label>
+                <input type="number" id="newCardLimit" name="newCardLimit"
+                       class="form-control form-control-sm"
+                       [(ngModel)]="newCardLimit" min="1" required
+                       style="width:160px" />
+              </div>
+              <!-- type="submit" makes the intent explicit; no ambiguity for browsers -->
+              <button type="submit" class="btn btn-primary btn-sm px-4"
+                      [disabled]="creatingCard || generateForm.invalid">
+                @if (creatingCard) {
+                  <span class="spinner-border spinner-border-sm me-1" role="status"></span>Creatingâ€¦
+                } @else {
+                  + Generate New Card
+                }
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Cards grid with Simulate Purchase -->
+        <h6 class="text-white-50 text-uppercase small mb-3" style="letter-spacing:1px;">My Virtual Cards</h6>
+
+        @if (loading) {
+          <div class="text-center text-white-50 py-5">
+            <div class="spinner-border" role="status"><span class="visually-hidden">Loadingâ€¦</span></div>
+            <div class="small mt-2">Loading cardsâ€¦</div>
+          </div>
+        }
+
+        @if (!loading && cards.length === 0) {
+          <div class="text-center text-white-50 py-5">
+            <div class="fs-1 mb-2"></div>
+            <p>No virtual cards yet. Generate your first card above!</p>
+          </div>
+        }
+
+        @if (!loading) {
+          <div class="row g-3">
+            @for (card of cards; track card.id) {
+              <div class="col-md-6 col-xl-4">
+                <div class="card border-0 shadow text-white"
+                     style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
+                  <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                      <span class="badge bg-white bg-opacity-25 text-white px-2 py-1 small">VIRTUAL</span>
+                      <span class="opacity-75 fs-5"></span>
+                    </div>
+                    <div class="mb-3 font-monospace fs-6 fw-semibold" style="letter-spacing:2px;">
+                      {{ card.cardNumber.substring(0,4) }} {{ card.cardNumber.substring(4,8) }}
+                      {{ card.cardNumber.substring(8,12) }} {{ card.cardNumber.substring(12) }}
+                    </div>
+                    <div class="row g-2 small">
+                      <div class="col-6">
+                        <div class="text-white-50">CVV</div>
+                        <div class="fw-bold">{{ card.cvv }}</div>
+                      </div>
+                      <div class="col-6 text-end">
+                        <div class="text-white-50">Status</div>
+                        <div class="fw-bold">Active</div>
+                      </div>
+                    </div>
+                    <hr class="border-white border-opacity-25 my-3">
+                    <div class="d-flex justify-content-between small">
+                      <div>
+                        <div class="text-white-50">Daily Limit</div>
+                        <div class="fw-bold">${{ card.dailyLimit | number:'1.2-2' }}</div>
+                      </div>
+                      <div class="text-end">
+                        <div class="text-white-50">Spent Today</div>
+                        <div class="fw-bold">${{ card.balance | number:'1.2-2' }}</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="card-footer bg-black bg-opacity-10 border-0 py-2 px-4">
+                    <!--
+                      type="button" prevents default form-submit behaviour.
+                      stopPropagation() is called inside simulatePurchase() to block bubbling.
+                      disabled while any card is being processed to prevent concurrent calls.
+                    -->
+                    <button type="button"
+                            class="btn btn-sm btn-outline-light w-100 py-1"
+                            [disabled]="processingCardId !== null"
+                            (click)="simulatePurchase(card.id, $event)">
+                      @if (processingCardId === card.id) {
+                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>Processingâ€¦
+                      } @else {
+                        â˜• Simulate $50 Purchase
+                      }
+                    </button>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      }
+
+      <!-- â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• TRANSACTIONS TAB â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• -->
+      @if (activeNav === 'transactions') {
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="text-white-50 text-uppercase small mb-0" style="letter-spacing:1px;">
+            Transaction History
+          </h6>
+          <button type="button" class="btn btn-outline-secondary btn-sm px-3"
+                  (click)="fetchAllTransactions()" [disabled]="txLoading">
+            @if (txLoading) {
+              <span class="spinner-border spinner-border-sm me-1" role="status"></span>Loadingâ€¦
+            } @else {
+              ðŸ”„ Refresh
+            }
           </button>
         </div>
-      </div>
 
-      @if (errorMsg) {
-        <div class="alert alert-danger py-2 d-flex align-items-center">
-          <span class="me-2">⚠️</span>{{ errorMsg }}
-          <button type="button" class="btn-close btn-close-white ms-auto btn-sm" (click)="errorMsg = ''"></button>
-        </div>
-      }
+        @if (txLoading) {
+          <div class="text-center text-white-50 py-5">
+            <div class="spinner-border" role="status"><span class="visually-hidden">Loadingâ€¦</span></div>
+            <div class="small mt-2">Loading transactionsâ€¦</div>
+          </div>
+        }
 
-      <!-- Cards Grid -->
-      <h6 class="text-white-50 text-uppercase small mb-3" style="letter-spacing:1px;">My Virtual Cards</h6>
+        @if (!txLoading && transactions.length === 0) {
+          <div class="text-center text-white-50 py-5">
+            <div class="fs-1 mb-2">ðŸ“Š</div>
+            <p>No transactions yet. Use <strong>Simulate $50 Purchase</strong> on your cards to see history here.</p>
+          </div>
+        }
 
-      @if (loading) {
-        <div class="text-center text-white-50 py-5">
-          <div class="spinner-border" role="status"></div>
-          <div class="small mt-2">Loading cards...</div>
-        </div>
-      }
-
-      @if (!loading && cards.length === 0) {
-        <div class="text-center text-white-50 py-5">
-          <div class="fs-1 mb-2">💳</div>
-          <p>No virtual cards yet. Generate your first card above!</p>
-        </div>
-      }
-
-      <div class="row g-3">
-        @for (card of cards; track card.id) {
-          <div class="col-md-6 col-xl-4">
-            <div class="card border-0 shadow text-white" style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
-              <div class="card-body p-4">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                  <span class="badge bg-white bg-opacity-25 text-white px-2 py-1 small">VIRTUAL</span>
-                  <span class="opacity-75 fs-5">💳</span>
-                </div>
-                <div class="mb-3 font-monospace fs-6 fw-semibold" style="letter-spacing:2px;">
-                  {{ card.cardNumber.substring(0, 4) }} {{ card.cardNumber.substring(4, 8) }} {{ card.cardNumber.substring(8, 12) }} {{ card.cardNumber.substring(12) }}
-                </div>
-                <div class="row g-2 small">
-                  <div class="col-6">
-                    <div class="text-white-50">CVV</div>
-                    <div class="fw-bold">{{ card.cvv }}</div>
-                  </div>
-                  <div class="col-6 text-end">
-                    <div class="text-white-50">Status</div>
-                    <div class="fw-bold">Active</div>
-                  </div>
-                </div>
-                <hr class="border-white border-opacity-25 my-3">
-                <div class="d-flex justify-content-between small">
-                  <div>
-                    <div class="text-white-50">Daily Limit</div>
-                    <div class="fw-bold">${{ card.dailyLimit | number:'1.2-2' }}</div>
-                  </div>
-                  <div class="text-end">
-                    <div class="text-white-50">Spent Today</div>
-                    <div class="fw-bold">${{ card.balance | number:'1.2-2' }}</div>
-                  </div>
-                </div>
-              </div>
-              <div class="card-footer bg-black bg-opacity-10 border-0 py-2 px-4">
-                <button class="btn btn-sm btn-outline-light w-100 py-1" (click)="simulatePurchase(card.id)">
-                  ☕ Simulate $50 Purchase
-                </button>
-              </div>
+        @if (!txLoading && transactions.length > 0) {
+          <div class="card bg-secondary border-0 shadow-sm">
+            <div class="table-responsive">
+              <table class="table table-dark table-hover align-middle mb-0">
+                <thead class="border-bottom border-secondary">
+                  <tr>
+                    <th class="text-white-50 fw-normal small py-3 ps-3">Merchant</th>
+                    <th class="text-white-50 fw-normal small py-3">Amount</th>
+                    <th class="text-white-50 fw-normal small py-3">Status</th>
+                    <th class="text-white-50 fw-normal small py-3">Date &amp; Time</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (tx of transactions; track tx.id) {
+                    <tr>
+                      <td class="py-3 ps-3">
+                        <div class="text-white fw-semibold">{{ tx.merchantName }}</div>
+                        <div class="text-white-50 small">Card â€¢â€¢â€¢â€¢ {{ getCardLastFour(tx.cardId) }}</div>
+                      </td>
+                      <td class="py-3 text-white fw-bold">${{ tx.amount | number:'1.2-2' }}</td>
+                      <td class="py-3">
+                        <span class="badge"
+                              [class.bg-success]="tx.status === 'SUCCESS'"
+                              [class.bg-danger]="tx.status === 'DECLINED'">
+                          {{ tx.status }}
+                        </span>
+                      </td>
+                      <td class="py-3 text-white-50 small">
+                        {{ tx.timestamp | date:'MMM d, y, h:mm a' }}
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
             </div>
           </div>
         }
-      </div>
+      }
 
-      <!-- Mobile Logout -->
+      <!-- Mobile Logout â€” always visible on small screens -->
       <div class="d-md-none text-center mt-4">
-        <button class="btn btn-outline-danger btn-sm" (click)="logout()">🚪 Logout</button>
+        <button type="button" class="btn btn-outline-danger btn-sm" (click)="logout()">
+          ðŸšª Logout
+        </button>
       </div>
 
     </main>
