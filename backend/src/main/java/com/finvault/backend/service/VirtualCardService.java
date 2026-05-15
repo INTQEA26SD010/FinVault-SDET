@@ -43,7 +43,9 @@ public class VirtualCardService {
                 .map(card -> new VirtualCardResponseDto(
                         card.getId(),
                         card.getCardNumber(),
+                        card.getCvv(),
                         card.getDailyLimit(),
+                        card.getBalance(),
                         card.getStatus().name()
                 ))
                 .collect(Collectors.toList());
@@ -76,7 +78,9 @@ public class VirtualCardService {
         return new VirtualCardResponseDto(
                 saved.getId(),
                 saved.getCardNumber(),
+                saved.getCvv(),
                 saved.getDailyLimit(),
+                saved.getBalance(),
                 saved.getStatus().name()
         );
     }

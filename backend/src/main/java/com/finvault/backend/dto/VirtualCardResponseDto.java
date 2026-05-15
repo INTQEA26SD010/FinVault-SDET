@@ -18,6 +18,8 @@ public class VirtualCardResponseDto {
 
     private Long id;
     private String cardNumber;
+    private String cvv;
     private BigDecimal dailyLimit;
+    private BigDecimal balance;
     private String status;
 }
