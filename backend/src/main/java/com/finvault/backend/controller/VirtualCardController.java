@@ -49,14 +49,15 @@ public class VirtualCardController {
      * POST /api/cards
      *
      * Creates a new virtual card for the specified user.
-     * Accepts a JSON body with userId and dailyLimit.
+     * Accepts a JSON body with userId, dailyLimit, and vendorName.
      * Auto-generates cardNumber (16 digits), cvv (3 digits),
      * expiryDate (3 years from today), balance (0.0), status (ACTIVE).
      *
      * Example request body:
      * {
      *   "userId": 1,
-     *   "dailyLimit": 500.00
+     *   "dailyLimit": 500.00,
+     *   "vendorName": "Amazon"
      * }
      *
      * Returns 201 CREATED with the new card's response DTO.
@@ -66,5 +67,42 @@ public class VirtualCardController {
             @RequestBody CreateVirtualCardDto request) {
         VirtualCardResponseDto created = virtualCardService.createVirtualCard(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    /**
+     * PUT /api/cards/{id}/toggle
+     *
+     * Flips a card's status between ACTIVE and FROZEN.
+     * ACTIVE → FROZEN (card is frozen, new transactions declined)
+     * FROZEN → ACTIVE (card is reactivated)
+     *
+     * Returns 200 OK with the updated card response DTO.
+     * Returns 404 NOT FOUND if the card ID does not exist.
+     */
+    @PutMapping("/{id}/toggle")
+    public ResponseEntity<VirtualCardResponseDto> toggleStatus(@PathVariable Long id) {
+        try {
+            VirtualCardResponseDto updated = virtualCardService.toggleCardStatus(id);
+            return ResponseEntity.ok(updated);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    /**
+     * DELETE /api/cards/{id}
+     *
+     * Permanently removes a virtual card and all its associated data.
+     * Returns 204 NO CONTENT on success.
+     * Returns 404 NOT FOUND if the card ID does not exist.
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteCard(@PathVariable Long id) {
+        try {
+            virtualCardService.deleteCard(id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

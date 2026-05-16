@@ -1,160 +1,208 @@
-<!-- FinVault Dashboard -->
-<div class="min-vh-100 bg-dark d-flex flex-column">
+﻿<!-- FinVault Dashboard -->
+<div class="fv-shell d-flex flex-column">
 
-  <!-- Top Navigation Bar -->
-  <nav class="navbar navbar-dark bg-primary px-4 shadow" style="min-height:56px;">
-    <span class="navbar-brand fw-bold fs-4 mb-0">
-      <span class="me-2">🏦</span>FinVault
-    </span>
-    <span class="navbar-text text-white-50 small d-none d-md-inline ms-2">Smart-Card Budgeting System</span>
+  <!-- ──────────── Navbar ──────────── -->
+  <nav class="fv-navbar d-flex align-items-center px-4 gap-3">
+    <div class="fv-brand"><span style="color:#4f8ef7">Fin</span>Vault</div>
+    <span style="background:rgba(79,142,247,0.14);color:#4f8ef7;font-size:0.6rem;
+                 font-weight:700;letter-spacing:1.2px;padding:3px 8px;border-radius:20px;
+                 border:1px solid rgba(79,142,247,0.22);">PREMIUM</span>
     <div class="ms-auto d-flex align-items-center gap-3">
-      <span class="text-white small d-none d-sm-inline">{{ user?.username }}</span>
-      <div class="rounded-circle bg-light text-primary d-flex align-items-center justify-content-center fw-bold"
-           style="width:36px; height:36px;">
-        {{ userInitials }}
-      </div>
+      <span class="d-none d-sm-inline" style="color:rgba(255,255,255,0.38);font-size:0.82rem;">
+        {{ user?.email }}
+      </span>
+      <div class="fv-avatar">{{ userInitials }}</div>
     </div>
   </nav>
 
-  <div class="d-flex flex-grow-1" style="min-height: calc(100vh - 56px);">
+  <div class="d-flex flex-grow-1">
 
-    <!-- Sidebar -->
-    <aside class="bg-dark border-end border-secondary d-none d-md-flex flex-column py-4 px-3"
-           style="width: 220px;">
-      <nav class="nav flex-column gap-1">
-        <button type="button"
-                class="nav-link btn text-start rounded px-3 py-2 fw-semibold"
-                [class.text-white]="activeNav === 'dashboard'"
-                [class.bg-primary]="activeNav === 'dashboard'"
-                [class.text-white-50]="activeNav !== 'dashboard'"
+    <!-- ──────────── Sidebar ──────────── -->
+    <aside class="fv-sidebar d-none d-md-flex flex-column py-4 px-3">
+      <div class="px-1 mb-3">
+        <div style="font-size:0.62rem;font-weight:700;letter-spacing:1.6px;color:rgba(255,255,255,0.2);">MENU</div>
+      </div>
+      <div class="d-flex flex-column">
+        <button type="button" class="sidebar-item" [class.active]="activeNav==='dashboard'"
                 (click)="setActiveNav('dashboard')">
-          🏠 Dashboard
+          <span class="sidebar-icon">🏠</span> Dashboard
         </button>
-        <button type="button"
-                class="nav-link btn text-start rounded px-3 py-2 fw-semibold"
-                [class.text-white]="activeNav === 'cards'"
-                [class.bg-primary]="activeNav === 'cards'"
-                [class.text-white-50]="activeNav !== 'cards'"
+        <button type="button" class="sidebar-item" [class.active]="activeNav==='cards'"
                 (click)="setActiveNav('cards')">
-          💳 My Cards
+          <span class="sidebar-icon">💳</span> My Cards
         </button>
-        <button type="button"
-                class="nav-link btn text-start rounded px-3 py-2 fw-semibold"
-                [class.text-white]="activeNav === 'transactions'"
-                [class.bg-primary]="activeNav === 'transactions'"
-                [class.text-white-50]="activeNav !== 'transactions'"
+        <button type="button" class="sidebar-item" [class.active]="activeNav==='transactions'"
                 (click)="setActiveNav('transactions')">
-          📊 Transactions
+          <span class="sidebar-icon">📊</span> Transactions
         </button>
-      </nav>
+      </div>
       <div class="mt-auto">
-        <button type="button" class="nav-link btn text-start text-danger px-3 py-2 w-100"
-                (click)="logout()">
-          🚪 Logout
+        <div class="sidebar-divider"></div>
+        <button type="button" class="sidebar-item" style="color:#f87171 !important;" (click)="logout()">
+          <span class="sidebar-icon">🚪</span> Logout
         </button>
       </div>
     </aside>
 
-    <!-- Main Content -->
-    <main class="flex-grow-1 p-4 overflow-auto">
+    <!-- ──────────── Main Content ──────────── -->
+    <main class="fv-main flex-grow-1 p-4 p-lg-5 overflow-auto">
 
-      <!-- Welcome Banner — always visible -->
-      <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+      <!-- Page header -->
+      <div class="d-flex flex-wrap justify-content-between align-items-start mb-5 gap-3">
         <div>
-          <h4 class="text-white mb-0">Welcome back, <span class="text-primary">{{ user?.username }}</span> 👋</h4>
-          <small class="text-white-50">
-            @if (activeNav === 'dashboard') { Here's an overview of your virtual cards }
-            @if (activeNav === 'cards') { Manage and simulate purchases on your virtual cards }
+          <h3 class="fw-bold mb-1" style="color:#fff;font-size:1.45rem;">
+            Good {{ timeGreeting }}, {{ user?.username }} 👋
+          </h3>
+          <p class="mb-0" style="color:rgba(255,255,255,0.35);font-size:0.84rem;">
+            @if (activeNav === 'dashboard') { Here's your FinVault account overview }
+            @if (activeNav === 'cards') { Generate and manage your virtual spending cards }
             @if (activeNav === 'transactions') { Full transaction history across all your cards }
-          </small>
+          </p>
         </div>
-        <span class="badge bg-primary fs-6 px-3 py-2 mt-2 mt-md-0">{{ cards.length }} Card(s)</span>
+        <span style="background:rgba(79,142,247,0.11);color:#4f8ef7;font-size:0.78rem;
+                     font-weight:600;padding:7px 16px;border-radius:20px;
+                     border:1px solid rgba(79,142,247,0.2);">
+          {{ cards.length }} Virtual Card{{ cards.length !== 1 ? 's' : '' }}
+        </span>
       </div>
 
-      <!-- Error banner — always visible -->
+      <!-- Error banner -->
       @if (errorMsg) {
-        <div class="alert alert-danger py-2 d-flex align-items-center mb-4" role="alert">
-          <span class="me-2">⚠️</span>{{ errorMsg }}
-          <button type="button" class="btn-close btn-close-white ms-auto btn-sm"
+        <div class="fv-alert d-flex align-items-center mb-4 px-4 py-3">
+          <span>⚠️</span>
+          <span class="ms-2 flex-grow-1">{{ errorMsg }}</span>
+          <button type="button" class="btn-close ms-3" style="filter:brightness(0.55)"
                   aria-label="Dismiss" (click)="errorMsg = ''"></button>
         </div>
       }
 
-      <!-- ═══════════════ DASHBOARD TAB ═══════════════ -->
+
+      <!-- ═══ DASHBOARD TAB ═══ -->
       @if (activeNav === 'dashboard') {
 
-        <!-- Summary Stats Row -->
-        <div class="row g-3 mb-4">
-          <div class="col-sm-6 col-lg-4">
-            <div class="card bg-primary text-white border-0 shadow-sm h-100">
-              <div class="card-body text-center py-4">
-                <div class="fs-2 fw-bold">{{ cards.length }}</div>
-                <div class="small text-white-50">Total Cards</div>
-              </div>
+        <!-- Stats -->
+        <div class="row g-3 mb-5">
+          <div class="col-6 col-xl-3">
+            <div class="stat-tile">
+              <div class="stat-icon">💳</div>
+              <div class="stat-value">{{ cards.length }}</div>
+              <div class="stat-label">Virtual Cards</div>
             </div>
           </div>
-          <div class="col-sm-6 col-lg-4">
-            <div class="card bg-success text-white border-0 shadow-sm h-100">
-              <div class="card-body text-center py-4">
-                <div class="fs-2 fw-bold">${{ totalLimit | number:'1.2-2' }}</div>
-                <div class="small text-white-50">Total Daily Limit</div>
-              </div>
+          <div class="col-6 col-xl-3">
+            <div class="stat-tile">
+              <div class="stat-icon">🎯</div>
+              <div class="stat-value">${{ totalLimit | number:'1.0-0' }}</div>
+              <div class="stat-label">Total Daily Limit</div>
             </div>
           </div>
-          <div class="col-sm-6 col-lg-4">
-            <div class="card bg-warning text-dark border-0 shadow-sm h-100">
-              <div class="card-body text-center py-4">
-                <div class="fs-2 fw-bold">${{ totalSpent | number:'1.2-2' }}</div>
-                <div class="small">Spent Today</div>
+          <div class="col-6 col-xl-3">
+            <div class="stat-tile">
+              <div class="stat-icon">💸</div>
+              <div class="stat-value">${{ totalSpent | number:'1.0-0' }}</div>
+              <div class="stat-label">Spent Today</div>
+            </div>
+          </div>
+          <div class="col-6 col-xl-3">
+            <div class="stat-tile">
+              <div class="stat-icon">✅</div>
+              <div class="stat-value"
+                   [style.color]="totalLimit > totalSpent ? '#34d399' : '#f87171'">
+                ${{ (totalLimit - totalSpent) | number:'1.0-0' }}
+              </div>
+              <div class="stat-label">Available Today</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Primary FinVault Account Card -->
+        <div class="section-label">Primary FinVault Account</div>
+        <div class="row mb-5">
+          <div class="col-12 col-sm-9 col-md-7 col-lg-5 col-xl-4">
+            <div class="fv-card-wrap"
+                 style="background:linear-gradient(145deg,#0c0219 0%,#160a40 35%,#0a2154 70%,#0d3080 100%);">
+              <div class="fv-card-inner">
+                <div class="d-flex justify-content-between align-items-center">
+                  <span style="font-size:1rem;font-weight:800;color:#fff;letter-spacing:-0.5px;">
+                    <span style="color:#7eb3ff;">Fin</span>Vault
+                  </span>
+                  <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+                    <circle cx="11" cy="19" r="1.5" fill="rgba(255,255,255,0.8)"/>
+                    <path d="M6.5 15a6.36 6.36 0 0 1 9 0" stroke="rgba(255,255,255,0.7)"
+                          stroke-width="1.4" stroke-linecap="round" fill="none"/>
+                    <path d="M3 11.5a11.18 11.18 0 0 1 16 0" stroke="rgba(255,255,255,0.36)"
+                          stroke-width="1.4" stroke-linecap="round" fill="none"/>
+                  </svg>
+                </div>
+                <div class="card-chip"></div>
+                <div class="card-number">{{ mainCardNumber }}</div>
+                <div class="d-flex justify-content-between align-items-end">
+                  <div>
+                    <div class="card-label">ACCOUNT HOLDER</div>
+                    <div class="card-value">{{ (user?.username || '').toUpperCase() }}</div>
+                  </div>
+                  <div>
+                    <div class="card-label">VALID THRU</div>
+                    <div class="card-value">{{ mainCardExpiry }}</div>
+                  </div>
+                  <div class="card-network" style="color:rgba(200,220,255,0.5);">PREMIUM</div>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Cards overview (read-only) -->
-        <h6 class="text-white-50 text-uppercase small mb-3" style="letter-spacing:1px;">Cards Overview</h6>
+        <!-- Virtual cards read-only overview -->
+        <div class="section-label">Your Virtual Cards</div>
 
         @if (loading) {
-          <div class="text-center text-white-50 py-5">
-            <div class="spinner-border" role="status"><span class="visually-hidden">Loading…</span></div>
-            <div class="small mt-2">Loading cards…</div>
+          <div class="fv-empty">
+            <div class="spinner-border text-secondary" role="status"></div>
+            <div class="small mt-3" style="color:rgba(255,255,255,0.22);">Loading…</div>
           </div>
         }
-
         @if (!loading && cards.length === 0) {
-          <div class="text-center text-white-50 py-5">
-            <div class="fs-1 mb-2"></div>
+          <div class="fv-empty">
+            <div class="fv-empty-icon">💳</div>
             <p class="mb-3">No virtual cards yet.</p>
-            <button type="button" class="btn btn-primary btn-sm" (click)="setActiveNav('cards')">
+            <button type="button" class="btn btn-primary btn-sm px-4"
+                    style="border-radius:9px;" (click)="setActiveNav('cards')">
               + Generate Your First Card
             </button>
           </div>
         }
-
         @if (!loading && cards.length > 0) {
-          <div class="row g-3">
-            @for (card of cards; track card.id) {
-              <div class="col-md-6 col-xl-4">
-                <div class="card border-0 shadow text-white"
-                     style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
-                  <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                      <span class="badge bg-white bg-opacity-25 text-white px-2 py-1 small">VIRTUAL</span>
-                      <span class="opacity-75 fs-5"></span>
+          <div class="row g-4">
+            @for (card of cards; track card.id; let i = $index) {
+              <div class="col-12 col-sm-6 col-xl-4">
+                <div class="fv-card-wrap" [style.background]="cardGradient(i)">
+                  @if (card.status === 'FROZEN') { <div class="frozen-overlay"></div> }
+                  <div class="fv-card-inner">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <span style="font-size:0.88rem;font-weight:800;color:#fff;">
+                        <span style="color:rgba(255,255,255,0.45);">Fin</span>Vault
+                      </span>
+                      <span class="badge"
+                            [style.background]="card.status==='ACTIVE'?'rgba(52,211,153,0.18)':'rgba(251,191,36,0.18)'"
+                            [style.color]="card.status==='ACTIVE'?'#34d399':'#fbbf24'"
+                            style="font-size:0.6rem;letter-spacing:0.8px;border-radius:6px;padding:3px 8px;">
+                        {{ card.status }}
+                      </span>
                     </div>
-                    <div class="mb-3 font-monospace fs-6 fw-semibold" style="letter-spacing:2px;">
-                      {{ card.cardNumber.substring(0,4) }} {{ card.cardNumber.substring(4,8) }}
-                      {{ card.cardNumber.substring(8,12) }} {{ card.cardNumber.substring(12) }}
+                    <div class="card-chip"></div>
+                    <div class="card-number" style="font-size:0.9rem;">
+                      •••• •••• •••• {{ card.cardNumber.slice(-4) }}
                     </div>
-                    <hr class="border-white border-opacity-25 my-3">
-                    <div class="d-flex justify-content-between small">
+                    <div class="d-flex justify-content-between align-items-end">
                       <div>
-                        <div class="text-white-50">Daily Limit</div>
-                        <div class="fw-bold">${{ card.dailyLimit | number:'1.2-2' }}</div>
+                        <div class="card-label">VENDOR</div>
+                        <div class="card-value">
+                          {{ card.vendorName ? card.vendorName.toUpperCase() : '—' }}
+                        </div>
                       </div>
                       <div class="text-end">
-                        <div class="text-white-50">Spent Today</div>
-                        <div class="fw-bold">${{ card.balance | number:'1.2-2' }}</div>
+                        <div class="card-label">LIMIT / DAY</div>
+                        <div class="card-value">${{ card.dailyLimit | number:'1.0-0' }}</div>
                       </div>
                     </div>
                   </div>
@@ -165,186 +213,211 @@
         }
       }
 
-      <!-- ═══════════════ MY CARDS TAB ═══════════════ -->
+
+      <!-- ═══ MY CARDS TAB ═══ -->
       @if (activeNav === 'cards') {
 
-        <!-- Generate New Card — wrapped in a real <form> so submit semantics are explicit -->
-        <div class="card bg-secondary border-0 shadow-sm mb-4">
-          <div class="card-body">
-            <h6 class="text-white mb-3">⚡ Generate New Card</h6>
-            <form (ngSubmit)="generateCard()" #generateForm="ngForm"
-                  class="d-flex flex-wrap align-items-end gap-3">
-              <div>
-                <label for="newCardLimit" class="form-label text-white small mb-1">Daily Limit ($)</label>
-                <input type="number" id="newCardLimit" name="newCardLimit"
-                       class="form-control form-control-sm"
-                       [(ngModel)]="newCardLimit" min="1" required
-                       style="width:160px" />
-              </div>
-              <!-- type="submit" makes the intent explicit; no ambiguity for browsers -->
-              <button type="submit" class="btn btn-primary btn-sm px-4"
-                      [disabled]="creatingCard || generateForm.invalid">
-                @if (creatingCard) {
-                  <span class="spinner-border spinner-border-sm me-1" role="status"></span>Creating…
-                } @else {
-                  + Generate New Card
-                }
-              </button>
-            </form>
-          </div>
+        <div class="fv-panel p-4 mb-5">
+          <div class="section-label">Generate New Card</div>
+          <form (ngSubmit)="generateCard()" #generateForm="ngForm"
+                class="d-flex flex-wrap align-items-end gap-3">
+            <div>
+              <label for="newVendorName" class="form-label mb-1"
+                     style="color:rgba(255,255,255,0.45);font-size:0.78rem;">Vendor / Purpose</label>
+              <input type="text" id="newVendorName" name="newVendorName"
+                     class="form-control form-control-sm fv-input"
+                     [(ngModel)]="newVendorName" placeholder="e.g. Amazon, Netflix"
+                     required style="width:200px;" />
+            </div>
+            <div>
+              <label for="newCardLimit" class="form-label mb-1"
+                     style="color:rgba(255,255,255,0.45);font-size:0.78rem;">Daily Limit ($)</label>
+              <input type="number" id="newCardLimit" name="newCardLimit"
+                     class="form-control form-control-sm fv-input"
+                     [(ngModel)]="newCardLimit" min="1" required style="width:140px;" />
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm px-4"
+                    style="border-radius:9px;height:31px;"
+                    [disabled]="creatingCard || generateForm.invalid">
+              @if (creatingCard) {
+                <span class="spinner-border spinner-border-sm me-1" role="status"></span>Creating…
+              } @else {
+                + Generate Card
+              }
+            </button>
+          </form>
         </div>
 
-        <!-- Cards grid with Simulate Purchase -->
-        <h6 class="text-white-50 text-uppercase small mb-3" style="letter-spacing:1px;">My Virtual Cards</h6>
+        <div class="section-label">My Virtual Cards</div>
 
         @if (loading) {
-          <div class="text-center text-white-50 py-5">
-            <div class="spinner-border" role="status"><span class="visually-hidden">Loading…</span></div>
-            <div class="small mt-2">Loading cards…</div>
+          <div class="fv-empty">
+            <div class="spinner-border text-secondary" role="status"></div>
           </div>
         }
-
         @if (!loading && cards.length === 0) {
-          <div class="text-center text-white-50 py-5">
-            <div class="fs-1 mb-2"></div>
-            <p>No virtual cards yet. Generate your first card above!</p>
-          </div>
+          <div class="fv-empty"><p>No virtual cards yet. Generate your first card above!</p></div>
         }
 
         @if (!loading) {
-          <div class="row g-3">
-            @for (card of cards; track card.id) {
-              <div class="col-md-6 col-xl-4">
-                <div class="card border-0 shadow text-white"
-                     style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
-                  <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
-                      <span class="badge bg-white bg-opacity-25 text-white px-2 py-1 small">VIRTUAL</span>
-                      <span class="opacity-75 fs-5"></span>
+          <div class="row g-4">
+            @for (card of cards; track card.id; let i = $index) {
+              <div class="col-12 col-sm-6 col-xl-4">
+
+                <!-- Card chrome -->
+                <div class="fv-card-wrap" [style.background]="cardGradient(i)">
+                  @if (card.status === 'FROZEN') { <div class="frozen-overlay"></div> }
+                  <div class="fv-card-inner">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <span style="font-size:0.88rem;font-weight:800;color:#fff;">
+                        <span style="color:rgba(255,255,255,0.45);">Fin</span>Vault
+                      </span>
+                      <svg width="20" height="20" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+                        <circle cx="11" cy="19" r="1.5" fill="rgba(255,255,255,0.8)"/>
+                        <path d="M6.5 15a6.36 6.36 0 0 1 9 0" stroke="rgba(255,255,255,0.7)"
+                              stroke-width="1.4" stroke-linecap="round" fill="none"/>
+                        <path d="M3 11.5a11.18 11.18 0 0 1 16 0" stroke="rgba(255,255,255,0.36)"
+                              stroke-width="1.4" stroke-linecap="round" fill="none"/>
+                      </svg>
                     </div>
-                    <div class="mb-3 font-monospace fs-6 fw-semibold" style="letter-spacing:2px;">
-                      {{ card.cardNumber.substring(0,4) }} {{ card.cardNumber.substring(4,8) }}
-                      {{ card.cardNumber.substring(8,12) }} {{ card.cardNumber.substring(12) }}
+                    <div class="card-chip"></div>
+                    <div class="card-number" style="font-size:0.95rem;">
+                      •••• •••• •••• {{ card.cardNumber.slice(-4) }}
                     </div>
-                    <div class="row g-2 small">
-                      <div class="col-6">
-                        <div class="text-white-50">CVV</div>
-                        <div class="fw-bold">{{ card.cvv }}</div>
+                    <div>
+                      <!-- Spend progress bar -->
+                      <div class="spend-bar-track mb-2">
+                        <div class="spend-bar-fill" [style.width]="spentRatio(card)+'%'"></div>
                       </div>
-                      <div class="col-6 text-end">
-                        <div class="text-white-50">Status</div>
-                        <div class="fw-bold">Active</div>
+                      <div class="d-flex justify-content-between align-items-end">
+                        <div>
+                          <div class="card-label">VENDOR</div>
+                          <div class="card-value">
+                            {{ card.vendorName ? card.vendorName.toUpperCase() : '—' }}
+                          </div>
+                        </div>
+                        <div>
+                          <div class="card-label">SPENT / LIMIT</div>
+                          <div class="card-value">
+                            ${{ card.balance | number:'1.0-0' }} / ${{ card.dailyLimit | number:'1.0-0' }}
+                          </div>
+                        </div>
+                        <div class="text-end">
+                          <div class="card-label">CVV</div>
+                          <div class="card-value">{{ card.cvv }}</div>
+                        </div>
                       </div>
                     </div>
-                    <hr class="border-white border-opacity-25 my-3">
-                    <div class="d-flex justify-content-between small">
-                      <div>
-                        <div class="text-white-50">Daily Limit</div>
-                        <div class="fw-bold">${{ card.dailyLimit | number:'1.2-2' }}</div>
-                      </div>
-                      <div class="text-end">
-                        <div class="text-white-50">Spent Today</div>
-                        <div class="fw-bold">${{ card.balance | number:'1.2-2' }}</div>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="card-footer bg-black bg-opacity-10 border-0 py-2 px-4">
-                    <!--
-                      type="button" prevents default form-submit behaviour.
-                      stopPropagation() is called inside simulatePurchase() to block bubbling.
-                      disabled while any card is being processed to prevent concurrent calls.
-                    -->
-                    <button type="button"
-                            class="btn btn-sm btn-outline-light w-100 py-1"
-                            [disabled]="processingCardId !== null"
-                            (click)="simulatePurchase(card.id, $event)">
-                      @if (processingCardId === card.id) {
-                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>Processing…
-                      } @else {
-                        ☕ Simulate $50 Purchase
-                      }
-                    </button>
                   </div>
                 </div>
+
+                <!-- Action buttons -->
+                <div class="card-actions">
+                  <button type="button" class="btn btn-sm btn-fv-freeze"
+                          [disabled]="togglingCardId !== null || deletingCardId !== null"
+                          (click)="toggleCard(card.id)">
+                    @if (togglingCardId === card.id) {
+                      <span class="spinner-border spinner-border-sm me-1" role="status"></span>Working…
+                    } @else if (card.status === 'FROZEN') {
+                      🔓 Unfreeze
+                    } @else {
+                      🔒 Freeze
+                    }
+                  </button>
+                  <button type="button" class="btn btn-sm btn-fv-delete"
+                          [disabled]="deletingCardId !== null || togglingCardId !== null"
+                          (click)="deleteCard(card.id)">
+                    @if (deletingCardId === card.id) {
+                      <span class="spinner-border spinner-border-sm" role="status"></span>
+                    } @else {
+                      🗑️ Delete
+                    }
+                  </button>
+                </div>
+
               </div>
             }
           </div>
         }
       }
 
-      <!-- ═══════════════ TRANSACTIONS TAB ═══════════════ -->
+
+      <!-- ═══ TRANSACTIONS TAB ═══ -->
       @if (activeNav === 'transactions') {
 
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <h6 class="text-white-50 text-uppercase small mb-0" style="letter-spacing:1px;">
-            Transaction History
-          </h6>
-          <button type="button" class="btn btn-outline-secondary btn-sm px-3"
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <div class="section-label mb-0">Transaction History</div>
+          <button type="button"
+                  style="border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);
+                         background:rgba(255,255,255,0.04);border-radius:8px;
+                         font-size:0.8rem;padding:6px 14px;cursor:pointer;"
                   (click)="fetchAllTransactions()" [disabled]="txLoading">
             @if (txLoading) {
-              <span class="spinner-border spinner-border-sm me-1" role="status"></span>Loading…
-            } @else {
-              🔄 Refresh
-            }
+              <span class="spinner-border spinner-border-sm me-1" role="status"></span>
+            } @else { 🔄 }
+            Refresh
           </button>
         </div>
 
         @if (txLoading) {
-          <div class="text-center text-white-50 py-5">
-            <div class="spinner-border" role="status"><span class="visually-hidden">Loading…</span></div>
-            <div class="small mt-2">Loading transactions…</div>
+          <div class="fv-empty">
+            <div class="spinner-border text-secondary" role="status"></div>
+            <div class="small mt-3" style="color:rgba(255,255,255,0.22);">Loading transactions…</div>
           </div>
         }
-
         @if (!txLoading && transactions.length === 0) {
-          <div class="text-center text-white-50 py-5">
-            <div class="fs-1 mb-2">📊</div>
-            <p>No transactions yet. Use <strong>Simulate $50 Purchase</strong> on your cards to see history here.</p>
+          <div class="fv-empty">
+            <div class="fv-empty-icon">📊</div>
+            <p>No transactions recorded yet.</p>
           </div>
         }
-
         @if (!txLoading && transactions.length > 0) {
-          <div class="card bg-secondary border-0 shadow-sm">
-            <div class="table-responsive">
-              <table class="table table-dark table-hover align-middle mb-0">
-                <thead class="border-bottom border-secondary">
+          <div class="fv-table-wrap">
+            <table class="table fv-table table-dark mb-0">
+              <thead>
+                <tr>
+                  <th>Merchant</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Date &amp; Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (tx of transactions; track tx.id) {
                   <tr>
-                    <th class="text-white-50 fw-normal small py-3 ps-3">Merchant</th>
-                    <th class="text-white-50 fw-normal small py-3">Amount</th>
-                    <th class="text-white-50 fw-normal small py-3">Status</th>
-                    <th class="text-white-50 fw-normal small py-3">Date &amp; Time</th>
+                    <td>
+                      <div style="color:#fff;font-weight:600;font-size:0.9rem;">{{ tx.merchantName }}</div>
+                      <div style="color:rgba(255,255,255,0.32);font-size:0.76rem;">
+                        Card •••• {{ getCardLastFour(tx.cardId) }}
+                      </div>
+                    </td>
+                    <td style="color:#fff;font-weight:700;">${{ tx.amount | number:'1.2-2' }}</td>
+                    <td>
+                      <span class="badge"
+                            [style.background]="tx.status==='SUCCESS'?'rgba(16,185,129,0.13)':'rgba(239,68,68,0.13)'"
+                            [style.color]="tx.status==='SUCCESS'?'#34d399':'#f87171'"
+                            style="border-radius:6px;padding:4px 10px;font-size:0.72rem;
+                                   letter-spacing:0.5px;font-weight:600;">
+                        {{ tx.status }}
+                      </span>
+                    </td>
+                    <td style="color:rgba(255,255,255,0.38);font-size:0.8rem;">
+                      {{ tx.timestamp | date:'MMM d, y, h:mm a' }}
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  @for (tx of transactions; track tx.id) {
-                    <tr>
-                      <td class="py-3 ps-3">
-                        <div class="text-white fw-semibold">{{ tx.merchantName }}</div>
-                        <div class="text-white-50 small">Card •••• {{ getCardLastFour(tx.cardId) }}</div>
-                      </td>
-                      <td class="py-3 text-white fw-bold">${{ tx.amount | number:'1.2-2' }}</td>
-                      <td class="py-3">
-                        <span class="badge"
-                              [class.bg-success]="tx.status === 'SUCCESS'"
-                              [class.bg-danger]="tx.status === 'DECLINED'">
-                          {{ tx.status }}
-                        </span>
-                      </td>
-                      <td class="py-3 text-white-50 small">
-                        {{ tx.timestamp | date:'MMM d, y, h:mm a' }}
-                      </td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            </div>
+                }
+              </tbody>
+            </table>
           </div>
         }
       }
 
-      <!-- Mobile Logout — always visible on small screens -->
-      <div class="d-md-none text-center mt-4">
-        <button type="button" class="btn btn-outline-danger btn-sm" (click)="logout()">
+      <!-- Mobile logout -->
+      <div class="d-md-none text-center mt-5">
+        <button type="button"
+                style="border:1px solid rgba(248,113,113,0.28);color:#f87171;background:transparent;
+                       border-radius:8px;padding:6px 20px;font-size:0.84rem;cursor:pointer;"
+                (click)="logout()">
           🚪 Logout
         </button>
       </div>

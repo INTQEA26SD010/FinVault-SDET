@@ -1,0 +1,368 @@
+/* ═══════════════════════════════════════════════════════════
+   FinVault Dashboard — Component Styles
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Shell ── */
+.fv-shell {
+  background: #080e1a;
+  min-height: 100vh;
+}
+
+/* ── Navbar ── */
+.fv-navbar {
+  background: #0d1526 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.055);
+  min-height: 60px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.fv-brand {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.5px;
+}
+
+/* ── Sidebar ── */
+.fv-sidebar {
+  width: 230px;
+  background: #0d1526;
+  border-right: 1px solid rgba(255, 255, 255, 0.055);
+  flex-shrink: 0;
+  position: sticky;
+  top: 60px;
+  height: calc(100vh - 60px);
+  overflow-y: auto;
+}
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.38);
+  font-size: 0.88rem;
+  font-weight: 500;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.16s ease;
+  border-left: 3px solid transparent;
+  margin-bottom: 2px;
+}
+.sidebar-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.75);
+}
+.sidebar-item.active {
+  background: rgba(79, 142, 247, 0.12);
+  color: #fff;
+  border-left-color: #4f8ef7;
+  font-weight: 600;
+}
+.sidebar-icon {
+  font-size: 1rem;
+  min-width: 20px;
+  text-align: center;
+}
+.sidebar-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+  margin: 12px 0;
+}
+
+/* ── Avatar ── */
+.fv-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4f8ef7 0%, #0d6efd 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+/* ── Main content area ── */
+.fv-main {
+  background: #080e1a;
+  min-width: 0; /* prevents flex overflow */
+}
+
+/* ── Section labels ── */
+.section-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  color: rgba(255, 255, 255, 0.3);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+/* ── Stat tiles ── */
+.stat-tile {
+  background: #131d32;
+  border: 1px solid rgba(255, 255, 255, 0.055);
+  border-radius: 16px;
+  padding: 20px 22px;
+  transition: border-color 0.2s;
+}
+.stat-tile:hover {
+  border-color: rgba(79, 142, 247, 0.25);
+}
+.stat-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+.stat-value {
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.1;
+  margin-top: 8px;
+}
+.stat-label {
+  font-size: 0.76rem;
+  color: rgba(255, 255, 255, 0.38);
+  margin-top: 3px;
+}
+
+/* ── Credit Card chrome ── */
+.fv-card-wrap {
+  border-radius: 18px;
+  aspect-ratio: 1.586;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.55),
+              0 0 0 1px rgba(255, 255, 255, 0.06);
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+  cursor: default;
+  user-select: none;
+}
+.fv-card-wrap:hover {
+  transform: translateY(-5px) scale(1.015);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.65),
+              0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+/* Glossy top-half sheen */
+.fv-card-wrap::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 50%;
+  background: linear-gradient(180deg,
+    rgba(255, 255, 255, 0.09) 0%,
+    rgba(255, 255, 255, 0) 100%);
+  pointer-events: none;
+  z-index: 2;
+  border-radius: 18px 18px 0 0;
+}
+
+/* Inner layout */
+.fv-card-inner {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  padding: 18px 22px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Frozen overlay */
+.frozen-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 20, 50, 0.55);
+  z-index: 10;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 5px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: rgba(180, 220, 255, 0.75);
+  backdrop-filter: blur(1px);
+}
+.frozen-overlay::before {
+  content: '❄  FROZEN';
+}
+
+/* EMV Chip (CSS-only, no SVG ID conflicts) */
+.card-chip {
+  width: 40px;
+  height: 30px;
+  border-radius: 5px;
+  background: linear-gradient(145deg, #f0c84a 0%, #c89420 45%, #e2b030 80%, #f5d060 100%);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.35),
+              inset 0 -1px 2px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+.card-chip::before {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  top: 50%;
+  height: 1.5px;
+  transform: translateY(-50%);
+  background: rgba(30, 20, 0, 0.28);
+  box-shadow: 0 -7px 0 rgba(30, 20, 0, 0.2),
+              0  7px 0 rgba(30, 20, 0, 0.2);
+}
+.card-chip::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0;
+  left: 50%;
+  width: 1.5px;
+  transform: translateX(-50%);
+  background: rgba(30, 20, 0, 0.25);
+  box-shadow: -9px 0 0 rgba(30, 20, 0, 0.18),
+               9px 0 0 rgba(30, 20, 0, 0.18);
+}
+
+/* Card typography */
+.card-number {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1rem;
+  letter-spacing: 3px;
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+.card-label {
+  font-size: 0.58rem;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.45);
+  margin-bottom: 1px;
+}
+.card-value {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+.card-network {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 2px;
+  font-style: italic;
+}
+
+/* ── Error alert ── */
+.fv-alert {
+  background: rgba(220, 53, 69, 0.1);
+  border: 1px solid rgba(220, 53, 69, 0.28);
+  border-radius: 12px;
+  color: #f87171;
+}
+
+/* ── Form panel ── */
+.fv-panel {
+  background: #131d32;
+  border: 1px solid rgba(255, 255, 255, 0.055);
+  border-radius: 16px;
+}
+.fv-input {
+  background: #0d1526 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+  border-radius: 8px !important;
+}
+.fv-input::placeholder { color: rgba(255, 255, 255, 0.25) !important; }
+.fv-input:focus {
+  border-color: rgba(79, 142, 247, 0.5) !important;
+  box-shadow: 0 0 0 3px rgba(79, 142, 247, 0.12) !important;
+  outline: none;
+}
+
+/* ── Card action buttons ── */
+.card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.btn-fv-freeze {
+  flex: 1;
+  border-radius: 9px !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  color: rgba(255, 255, 255, 0.72) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  font-size: 0.82rem !important;
+  transition: all 0.15s;
+}
+.btn-fv-freeze:hover:not(:disabled) {
+  background: rgba(255, 200, 60, 0.1) !important;
+  border-color: rgba(255, 200, 60, 0.35) !important;
+  color: #fbbf24 !important;
+}
+.btn-fv-delete {
+  border-radius: 9px !important;
+  border: 1px solid rgba(220, 53, 69, 0.28) !important;
+  color: #f87171 !important;
+  background: rgba(220, 53, 69, 0.07) !important;
+  font-size: 0.82rem !important;
+  padding: 4px 14px !important;
+  transition: all 0.15s;
+}
+.btn-fv-delete:hover:not(:disabled) {
+  background: rgba(220, 53, 69, 0.15) !important;
+  border-color: rgba(220, 53, 69, 0.5) !important;
+}
+
+/* ── Transaction table ── */
+.fv-table-wrap {
+  background: #131d32;
+  border: 1px solid rgba(255, 255, 255, 0.055);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.fv-table { margin: 0; }
+.fv-table thead th {
+  background: #0d1526;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.055);
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 14px 18px;
+}
+.fv-table tbody td {
+  border-color: rgba(255, 255, 255, 0.04);
+  padding: 14px 18px;
+  vertical-align: middle;
+}
+.fv-table tbody tr:hover { background: rgba(79, 142, 247, 0.04); }
+
+/* ── Spend progress bar ── */
+.spend-bar-track {
+  height: 2px;
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 2px;
+}
+.spend-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.6);
+  transition: width 0.4s ease;
+}
+
+/* ── Empty state ── */
+.fv-empty {
+  padding: 70px 0;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.28);
+}
+.fv-empty-icon { font-size: 2.8rem; margin-bottom: 14px; }

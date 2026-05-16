@@ -22,4 +22,5 @@ public class VirtualCardResponseDto {
     private BigDecimal dailyLimit;
     private BigDecimal balance;
     private String status;
+    private String vendorName;
 }
