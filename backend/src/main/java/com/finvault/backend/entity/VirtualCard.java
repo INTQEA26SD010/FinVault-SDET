@@ -73,6 +73,14 @@ public class VirtualCard {
     @Column(name = "status", nullable = false, length = 20)
     private CardStatus status = CardStatus.ACTIVE;
 
+    /**
+     * Human-readable vendor or purpose label (e.g. "Amazon", "Netflix").
+     * Stored as VARCHAR(100) with a DEFAULT '' so existing rows survive the
+     * schema migration performed by Hibernate's ddl-auto=update.
+     */
+    @Column(name = "vendor_name", columnDefinition = "VARCHAR(100) NOT NULL DEFAULT ''")
+    private String vendorName = "";
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

@@ -8,6 +8,7 @@ import com.finvault.backend.repository.UserRepository;
 import com.finvault.backend.repository.VirtualCardRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -40,14 +41,7 @@ public class VirtualCardService {
         List<VirtualCard> cards = virtualCardRepository.findByUserId(userId);
 
         return cards.stream()
-                .map(card -> new VirtualCardResponseDto(
-                        card.getId(),
-                        card.getCardNumber(),
-                        card.getCvv(),
-                        card.getDailyLimit(),
-                        card.getBalance(),
-                        card.getStatus().name()
-                ))
+                .map(this::toResponseDto)
                 .collect(Collectors.toList());
     }
 
@@ -71,18 +65,12 @@ public class VirtualCardService {
         card.setCvv(generateCvv());
         card.setExpiryDate(LocalDate.now().plusYears(3));
         card.setDailyLimit(request.getDailyLimit() != null ? request.getDailyLimit() : BigDecimal.ZERO);
+        card.setVendorName(request.getVendorName() != null ? request.getVendorName().trim() : "");
         card.setStatus(VirtualCard.CardStatus.ACTIVE);
 
         VirtualCard saved = virtualCardRepository.save(card);
 
-        return new VirtualCardResponseDto(
-                saved.getId(),
-                saved.getCardNumber(),
-                saved.getCvv(),
-                saved.getDailyLimit(),
-                saved.getBalance(),
-                saved.getStatus().name()
-        );
+        return toResponseDto(saved);
     }
 
     /**
@@ -101,5 +89,52 @@ public class VirtualCardService {
      */
     private String generateCvv() {
         return String.format("%03d", random.nextInt(1000));
+    }
+
+    /**
+     * Toggles a card's status between ACTIVE and FROZEN.
+     *
+     * @param id the card's primary key
+     * @return updated card response DTO
+     * @throws RuntimeException if the card is not found
+     */
+    @Transactional
+    public VirtualCardResponseDto toggleCardStatus(Long id) {
+        VirtualCard card = virtualCardRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Card not found with ID: " + id));
+        card.setStatus(card.getStatus() == VirtualCard.CardStatus.ACTIVE
+                ? VirtualCard.CardStatus.FROZEN
+                : VirtualCard.CardStatus.ACTIVE);
+        return toResponseDto(virtualCardRepository.save(card));
+    }
+
+    /**
+     * Permanently deletes a card by its ID.
+     *
+     * @param id the card's primary key
+     * @throws RuntimeException if the card is not found
+     */
+    @Transactional
+    public void deleteCard(Long id) {
+        if (!virtualCardRepository.existsById(id)) {
+            throw new RuntimeException("Card not found with ID: " + id);
+        }
+        virtualCardRepository.deleteById(id);
+    }
+
+    /**
+     * Maps a VirtualCard entity to its safe response DTO.
+     * Centralises field mapping so all service methods stay consistent.
+     */
+    private VirtualCardResponseDto toResponseDto(VirtualCard card) {
+        return new VirtualCardResponseDto(
+                card.getId(),
+                card.getCardNumber(),
+                card.getCvv(),
+                card.getDailyLimit(),
+                card.getBalance(),
+                card.getStatus().name(),
+                card.getVendorName()
+        );
     }
 }

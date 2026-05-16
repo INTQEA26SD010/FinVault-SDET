@@ -17,8 +17,13 @@ import { AuthService, SessionUser } from '../services/auth.service';
 export class DashboardComponent implements OnInit {
   cards: VirtualCard[] = [];
   newCardLimit = 500;
+  newVendorName = '';
   loading = false;
   creatingCard = false;
+  /** Holds the id of the card currently being toggled (freeze/unfreeze); null when idle. */
+  togglingCardId: number | null = null;
+  /** Holds the id of the card currently being deleted; null when idle. */
+  deletingCardId: number | null = null;
   /** Holds the id of the card currently being processed; null when idle. */
   processingCardId: number | null = null;
   errorMsg = '';
@@ -88,14 +93,51 @@ export class DashboardComponent implements OnInit {
   }
 
   generateCard(): void {
-    if (!this.user || this.newCardLimit <= 0 || this.creatingCard) return;
+    if (!this.user || this.newCardLimit <= 0 || !this.newVendorName.trim() || this.creatingCard) return;
     this.creatingCard = true;
     this.errorMsg = '';
-    this.cardService.createCard(this.user.userId, this.newCardLimit)
+    this.cardService.createCard(this.user.userId, this.newCardLimit, this.newVendorName.trim())
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: () => { this.creatingCard = false; this.fetchCards(); this.cdr.detectChanges(); },
+        next: () => {
+          this.creatingCard = false;
+          this.newVendorName = '';
+          this.fetchCards();
+          this.cdr.detectChanges();
+        },
         error: () => { this.errorMsg = 'Failed to create card.'; this.creatingCard = false; this.cdr.detectChanges(); }
+      });
+  }
+
+  /**
+   * Toggle a card's status between ACTIVE and FROZEN.
+   * Guard prevents concurrent calls.
+   */
+  toggleCard(cardId: number): void {
+    if (this.togglingCardId !== null) return;
+    this.togglingCardId = cardId;
+    this.errorMsg = '';
+    this.cardService.toggleCard(cardId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => { this.togglingCardId = null; this.fetchCards(); this.cdr.detectChanges(); },
+        error: () => { this.errorMsg = 'Failed to toggle card status.'; this.togglingCardId = null; this.cdr.detectChanges(); }
+      });
+  }
+
+  /**
+   * Permanently delete a card.
+   * Guard prevents concurrent calls.
+   */
+  deleteCard(cardId: number): void {
+    if (this.deletingCardId !== null) return;
+    this.deletingCardId = cardId;
+    this.errorMsg = '';
+    this.cardService.deleteCard(cardId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => { this.deletingCardId = null; this.fetchCards(); this.cdr.detectChanges(); },
+        error: () => { this.errorMsg = 'Failed to delete card.'; this.deletingCardId = null; this.cdr.detectChanges(); }
       });
   }
 

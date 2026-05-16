@@ -136,12 +136,17 @@
             @for (card of cards; track card.id) {
               <div class="col-md-6 col-xl-4">
                 <div class="card border-0 shadow text-white"
+                     [style.opacity]="card.status === 'FROZEN' ? '0.75' : '1'"
                      style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
                   <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
                       <span class="badge bg-white bg-opacity-25 text-white px-2 py-1 small">VIRTUAL</span>
-                      <span class="opacity-75 fs-5"></span>
+                      <span class="badge"
+                            [class.bg-success]="card.status === 'ACTIVE'"
+                            [class.bg-warning]="card.status === 'FROZEN'"
+                            [class.text-dark]="card.status === 'FROZEN'">{{ card.status }}</span>
                     </div>
+                    <div class="fw-bold mb-2">{{ card.vendorName }}</div>
                     <div class="mb-3 font-monospace fs-6 fw-semibold" style="letter-spacing:2px;">
                       {{ card.cardNumber.substring(0,4) }} {{ card.cardNumber.substring(4,8) }}
                       {{ card.cardNumber.substring(8,12) }} {{ card.cardNumber.substring(12) }}
@@ -174,6 +179,15 @@
             <h6 class="text-white mb-3">⚡ Generate New Card</h6>
             <form (ngSubmit)="generateCard()" #generateForm="ngForm"
                   class="d-flex flex-wrap align-items-end gap-3">
+              <div>
+                <label for="newVendorName" class="form-label text-white small mb-1">Vendor / Purpose</label>
+                <input type="text" id="newVendorName" name="newVendorName"
+                       class="form-control form-control-sm"
+                       [(ngModel)]="newVendorName"
+                       placeholder="e.g. Amazon, Netflix"
+                       required
+                       style="width:200px" />
+              </div>
               <div>
                 <label for="newCardLimit" class="form-label text-white small mb-1">Daily Limit ($)</label>
                 <input type="number" id="newCardLimit" name="newCardLimit"
@@ -216,25 +230,23 @@
             @for (card of cards; track card.id) {
               <div class="col-md-6 col-xl-4">
                 <div class="card border-0 shadow text-white"
+                     [style.opacity]="card.status === 'FROZEN' ? '0.75' : '1'"
                      style="background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);">
                   <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
                       <span class="badge bg-white bg-opacity-25 text-white px-2 py-1 small">VIRTUAL</span>
-                      <span class="opacity-75 fs-5"></span>
+                      <span class="badge"
+                            [class.bg-success]="card.status === 'ACTIVE'"
+                            [class.bg-warning]="card.status === 'FROZEN'"
+                            [class.text-dark]="card.status === 'FROZEN'">{{ card.status }}</span>
                     </div>
+                    <div class="fw-bold fs-6 mb-2">{{ card.vendorName }}</div>
                     <div class="mb-3 font-monospace fs-6 fw-semibold" style="letter-spacing:2px;">
                       {{ card.cardNumber.substring(0,4) }} {{ card.cardNumber.substring(4,8) }}
                       {{ card.cardNumber.substring(8,12) }} {{ card.cardNumber.substring(12) }}
                     </div>
-                    <div class="row g-2 small">
-                      <div class="col-6">
-                        <div class="text-white-50">CVV</div>
-                        <div class="fw-bold">{{ card.cvv }}</div>
-                      </div>
-                      <div class="col-6 text-end">
-                        <div class="text-white-50">Status</div>
-                        <div class="fw-bold">Active</div>
-                      </div>
+                    <div class="small mb-1 text-white-50">
+                      CVV: <span class="text-white fw-bold">{{ card.cvv }}</span>
                     </div>
                     <hr class="border-white border-opacity-25 my-3">
                     <div class="d-flex justify-content-between small">
@@ -248,20 +260,32 @@
                       </div>
                     </div>
                   </div>
-                  <div class="card-footer bg-black bg-opacity-10 border-0 py-2 px-4">
+                  <div class="card-footer bg-black bg-opacity-10 border-0 py-2 px-4 d-flex gap-2">
                     <!--
-                      type="button" prevents default form-submit behaviour.
-                      stopPropagation() is called inside simulatePurchase() to block bubbling.
-                      disabled while any card is being processed to prevent concurrent calls.
+                      Freeze/Unfreeze: toggles ACTIVE ↔ FROZEN via PUT /api/cards/{id}/toggle.
+                      Delete: permanently removes the card via DELETE /api/cards/{id}.
+                      Both buttons are disabled while any operation is in progress.
                     -->
                     <button type="button"
-                            class="btn btn-sm btn-outline-light w-100 py-1"
-                            [disabled]="processingCardId !== null"
-                            (click)="simulatePurchase(card.id, $event)">
-                      @if (processingCardId === card.id) {
-                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>Processing…
+                            class="btn btn-sm btn-outline-warning flex-grow-1 py-1"
+                            [disabled]="togglingCardId !== null || deletingCardId !== null"
+                            (click)="toggleCard(card.id)">
+                      @if (togglingCardId === card.id) {
+                        <span class="spinner-border spinner-border-sm me-1" role="status"></span>Working…
+                      } @else if (card.status === 'FROZEN') {
+                        🔓 Unfreeze
                       } @else {
-                        ☕ Simulate $50 Purchase
+                        🔒 Freeze
+                      }
+                    </button>
+                    <button type="button"
+                            class="btn btn-sm btn-outline-danger py-1 px-3"
+                            [disabled]="deletingCardId !== null || togglingCardId !== null"
+                            (click)="deleteCard(card.id)">
+                      @if (deletingCardId === card.id) {
+                        <span class="spinner-border spinner-border-sm" role="status"></span>
+                      } @else {
+                        🗑️
                       }
                     </button>
                   </div>
@@ -299,7 +323,7 @@
         @if (!txLoading && transactions.length === 0) {
           <div class="text-center text-white-50 py-5">
             <div class="fs-1 mb-2">📊</div>
-            <p>No transactions yet. Use <strong>Simulate $50 Purchase</strong> on your cards to see history here.</p>
+            <p>No transactions yet. Generate a card and simulate purchases via the API to see history here.</p>
           </div>
         }
 

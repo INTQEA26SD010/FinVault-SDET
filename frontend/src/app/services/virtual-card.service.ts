@@ -8,6 +8,8 @@ export interface VirtualCard {
   cvv: string;
   dailyLimit: number;
   balance: number;
+  status: string;
+  vendorName: string;
   userId: number;
 }
 
@@ -31,9 +33,19 @@ export class VirtualCardService {
     return this.http.get<VirtualCard[]>(`${this.baseUrl}/cards/user/${userId}`);
   }
 
-  /** Create a new virtual card */
-  createCard(userId: number, dailyLimit: number): Observable<VirtualCard> {
-    return this.http.post<VirtualCard>(`${this.baseUrl}/cards`, { userId, dailyLimit });
+  /** Create a new virtual card with a vendor name and daily limit */
+  createCard(userId: number, dailyLimit: number, vendorName: string): Observable<VirtualCard> {
+    return this.http.post<VirtualCard>(`${this.baseUrl}/cards`, { userId, dailyLimit, vendorName });
+  }
+
+  /** Toggle a card's status between ACTIVE and FROZEN */
+  toggleCard(cardId: number): Observable<VirtualCard> {
+    return this.http.put<VirtualCard>(`${this.baseUrl}/cards/${cardId}/toggle`, {});
+  }
+
+  /** Permanently delete a card */
+  deleteCard(cardId: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/cards/${cardId}`);
   }
 
   /** Process a transaction against a card */

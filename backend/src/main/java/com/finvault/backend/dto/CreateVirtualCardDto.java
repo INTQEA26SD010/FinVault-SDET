@@ -17,4 +17,6 @@ public class CreateVirtualCardDto {
 
     private Long userId;
     private BigDecimal dailyLimit;
+    /** Human-readable vendor or purpose label required at card-creation time. */
+    private String vendorName;
 }
