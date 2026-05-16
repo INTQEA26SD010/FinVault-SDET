@@ -1,6 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit, DestroyRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -40,7 +41,8 @@ export class DashboardComponent implements OnInit {
 
   constructor(
     private cardService: VirtualCardService,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -253,5 +255,10 @@ export class DashboardComponent implements OnInit {
 
   logout(): void {
     this.authService.logout();
+  }
+
+  /** Navigate to the Transaction Simulator page (no page reload — uses Angular router). */
+  goToSimulator(): void {
+    this.router.navigate(['/simulator']);
   }
 }

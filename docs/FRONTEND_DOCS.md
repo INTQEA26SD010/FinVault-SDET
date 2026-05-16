@@ -1,135 +1,116 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/Angular-21-DD0031?style=for-the-badge&logo=angular&logoColor=white" />
-  <img src="https://img.shields.io/badge/TypeScript-5.x-3178C6?style=for-the-badge&logo=typescript&logoColor=white" />
-  <img src="https://img.shields.io/badge/Bootstrap-5-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white" />
+  <img src="https://img.shields.io/badge/Angular-21.2-DD0031?style=for-the-badge&logo=angular&logoColor=white" />
+  <img src="https://img.shields.io/badge/TypeScript-5.9-3178C6?style=for-the-badge&logo=typescript&logoColor=white" />
+  <img src="https://img.shields.io/badge/Bootstrap-5.3-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white" />
   <img src="https://img.shields.io/badge/Standalone-Components-FF4081?style=for-the-badge" />
 </p>
 
 # 🅰️ FinVault — Frontend Documentation
 
-> **Tickets:** SCRUM-15, SCRUM-16, SCRUM-17, SCRUM-18 | **Framework:** Angular 21 (Standalone Components)  
-> **Styling:** Bootstrap 5 | **HTTP Client:** Angular `HttpClient` (`provideHttpClient(withFetch())`)
+> **Framework:** Angular 21 (Standalone Components) | **Styling:** Bootstrap 5.3  
+> **HTTP Client:** `provideHttpClient(withFetch())` | **State:** sessionStorage
 
 ---
 
 ## 📑 Table of Contents
 
-| # | Section | Description |
-|:-:|---------|-------------|
-| 1 | [What is Angular? — Theory](#-what-is-angular--theory) | Core concepts of the Angular framework |
-| 2 | [What is a SPA?](#-what-is-a-spa) | Single Page Application architecture explained |
-| 3 | [Standalone Components (Angular 17+)](#-standalone-components-angular-17) | The modern Angular pattern — no NgModules |
-| 4 | [Project Structure](#-project-structure) | File tree with descriptions |
-| 5 | [Application Bootstrap Flow](#-application-bootstrap-flow) | How Angular starts up |
-| 6 | [Routing Configuration](#-routing-configuration) | URL → Component mapping |
-| 7 | [Services & Dependency Injection](#-services--dependency-injection) | HttpClient and Angular DI |
-| 8 | [Component Deep Dive: LoginComponent](#-component-deep-dive-logincomponent) | Registration form — code walkthrough |
-| 9 | [Component Deep Dive: DashboardComponent](#-component-deep-dive-dashboardcomponent) | Card dashboard — layout and mock data |
-| 10 | [Angular ↔ Spring Boot Communication](#-angular--spring-boot-communication) | How frontend talks to backend |
-| 11 | [Bootstrap 5 Integration](#-bootstrap-5-integration) | CSS framework setup |
-| 12 | [Key Angular Concepts Used](#-key-angular-concepts-used) | Directives, bindings, forms |
-| 13 | [Glossary](#-glossary) | Key frontend terms |
+| # | Section |
+|:-:|---------|
+| 1 | [Angular Core Concepts](#-angular-core-concepts) |
+| 2 | [Single Page Application (SPA)](#-single-page-application-spa) |
+| 3 | [Standalone Components](#-standalone-components) |
+| 4 | [Project Structure](#-project-structure) |
+| 5 | [Application Bootstrap Flow](#-application-bootstrap-flow) |
+| 6 | [Routing Configuration](#-routing-configuration) |
+| 7 | [Route Guard (authGuard)](#-route-guard-authguard) |
+| 8 | [Services & Dependency Injection](#-services--dependency-injection) |
+| 9 | [Component: LoginComponent](#-component-logincomponent) |
+| 10 | [Component: DashboardComponent](#-component-dashboardcomponent) |
+| 11 | [Component: SimulatorComponent](#-component-simulatorcomponent) |
+| 12 | [Change Detection with Fetch API](#-change-detection-with-fetch-api) |
+| 13 | [Key Angular Patterns Used](#-key-angular-patterns-used) |
 
 ---
 
-## 📖 What is Angular? — Theory
+## 📖 Angular Core Concepts
 
 ### Angular — A Component-Based Framework
 
-**Angular** is a TypeScript-based frontend framework developed and maintained by **Google**. It's used to build **Single Page Applications (SPAs)** — web apps that feel as fast as desktop apps.
+**Angular** is a TypeScript-based frontend framework by **Google** for building **Single Page Applications (SPAs)**.
 
-> 💡 **Think of Angular like LEGO blocks:**  
-> Each component is a self-contained LEGO brick (with its own HTML, CSS, and logic).  
-> You snap them together to build the full application.  
-> You can swap, reuse, or replace any brick without rebuilding the entire structure.
+| Concept | What It Is | FinVault Example |
+|---------|-----------|------------------|
+| **Component** | Self-contained UI unit (HTML + CSS + logic) | `LoginComponent`, `DashboardComponent`, `SimulatorComponent` |
+| **Template** | HTML that defines the component's view | `login.component.html`, `dashboard.component.html` |
+| **Service** | Class handling data, HTTP, or shared logic | `AuthService`, `VirtualCardService` |
+| **Router** | Maps URLs to components without page reload | `app.routes.ts` |
+| **Guard** | Protects routes from unauthorized access | `authGuard` |
+| **Directive** | Instructions that modify the DOM | `@if`, `@for`, `ngModel` |
 
-### Angular's Core Building Blocks
+### 🎓 Why Angular for FinVault? (Interview)
 
-| Concept | What It Is | Analogy | FinVault Example |
-|---------|-----------|---------|------------------|
-| **Component** | A reusable UI unit with its own template, styles, and logic | A LEGO brick | `LoginComponent`, `DashboardComponent` |
-| **Template** | The HTML that defines what the component renders | The shape of the brick | `login.component.html` |
-| **Service** | A class that handles data, HTTP calls, or shared logic | A delivery truck that brings data to bricks | `AuthService` |
-| **Router** | Maps URLs to components — enables navigation without page reload | Road signs that direct traffic | `app.routes.ts` |
-| **Directive** | Special instructions in HTML that modify the DOM | Remote controls for bricks | `@if`, `@for`, `ngModel` |
-| **Module** | ~~A container for organizing components~~ | **Replaced by Standalone Components in Angular 17+** | Not used in FinVault |
-
-### Why Angular Over React or Vue?
-
-| Feature | Angular | React | Vue |
-|---------|:-------:|:-----:|:---:|
-| Language | TypeScript (built-in) | JavaScript (TS optional) | JavaScript (TS optional) |
-| Architecture | Full framework (routing, HTTP, forms included) | Library (need 3rd party) | Progressive framework |
-| Learning Curve | Steeper | Moderate | Gentle |
-| Enterprise Adoption | Very high (Google, Microsoft) | Very high (Meta, Netflix) | Growing (Alibaba, GitLab) |
-| FinVault Choice | ✅ **Selected** | — | — |
-
-> 🎯 **Why Angular for FinVault?** It's a full framework with built-in solutions for routing, HTTP, forms, and dependency injection — no need to piece together multiple libraries. Perfect for a structured enterprise financial application.
+> Angular is a **full framework** with built-in routing, HTTP client, forms, and DI — no need to piece together third-party libraries. Its TypeScript-first approach catches errors at compile time, and its opinionated structure enforces consistent code organization across the team.
 
 ---
 
-## 🌐 What is a SPA?
-
-### Single Page Application — How It Works
-
-A **SPA** (Single Page Application) loads a **single HTML page** on the first visit, then dynamically updates the content using JavaScript — without ever reloading the page.
+## 🌐 Single Page Application (SPA)
 
 ```
-        TRADITIONAL WEB APP (Multi-Page)              SPA (Single-Page — Angular)
-  ┌─────────────────────────────────┐        ┌─────────────────────────────────┐
-  │                                 │        │                                 │
-  │  Click "Dashboard" →            │        │  Click "Dashboard" →            │
-  │  Browser requests NEW page      │        │  Angular swaps component        │
-  │  Server sends FULL HTML         │        │  No server round-trip!          │
-  │  White flash while loading      │        │  Instant, seamless transition   │
-  │  ⏱️ 500ms-2000ms               │        │  ⏱️ ~10ms                       │
-  │                                 │        │                                 │
-  │  Click "Cards" →                │        │  Click "Cards" →                │
-  │  Another FULL page reload       │        │  Router swaps component again   │
-  │  ⏱️ 500ms-2000ms again         │        │  ⏱️ ~10ms again                 │
-  │                                 │        │                                 │
-  └─────────────────────────────────┘        └─────────────────────────────────┘
+  TRADITIONAL WEB APP                          SPA (Angular)
+  ──────────────────                           ─────────────
+  Click "Dashboard" →                          Click "Dashboard" →
+  Browser requests NEW page                    Angular swaps component
+  Server sends FULL HTML                       No server round-trip!
+  White flash while loading                    Instant transition
+  ⏱️ 500ms–2000ms                             ⏱️ ~10ms
 ```
 
 ### How FinVault's SPA Works
 
 ```
-  1. First Visit → Browser downloads index.html + main.js (Angular bundle)
-  2. Angular boots up and renders <router-outlet /> in app.html
-  3. URL is "/login" → Router loads LoginComponent into the outlet
-  4. User registers → Router navigates to "/dashboard"
-  5. DashboardComponent replaces LoginComponent — NO page reload!
+1. First visit → Browser downloads index.html + main.js (Angular bundle)
+2. Angular boots up → renders <router-outlet /> in app.html
+3. URL is "/login" → Router loads LoginComponent
+4. User registers → Router navigates to "/dashboard"
+5. DashboardComponent replaces LoginComponent — NO page reload
+6. User clicks "Simulator" → Router loads SimulatorComponent — still no reload
 ```
 
 ---
 
-## ⚡ Standalone Components (Angular 17+)
+## ⚡ Standalone Components
 
-### The Old Way vs The New Way
+### The Modern Angular Pattern (17+)
 
-```
-  ❌ OLD: NgModule-based (Angular 2-16)
-  ──────────────────────────────────────
-  @NgModule({
-    declarations: [LoginComponent, DashboardComponent],
-    imports: [CommonModule, FormsModule, RouterModule],
-    providers: [AuthService],
-    bootstrap: [AppComponent]
-  })
-  export class AppModule {}     ← Extra boilerplate file!
+FinVault uses **standalone components** — each component declares its own dependencies:
 
-  ✅ NEW: Standalone Components (Angular 17+ / FinVault)
-  ────────────────────────────────────────────────────────
-  @Component({
-    selector: 'app-login',
-    standalone: true,                    ← Component manages its own imports
-    imports: [CommonModule, FormsModule], ← Declares exactly what it needs
-    templateUrl: './login.component.html'
-  })
-  export class LoginComponent {}         ← No NgModule needed!
+```typescript
+// ❌ OLD: Required a shared AppModule
+@NgModule({
+  declarations: [LoginComponent, DashboardComponent],
+  imports: [CommonModule, FormsModule, RouterModule],
+})
+export class AppModule {}
+
+// ✅ NEW (FinVault): Each component is self-contained
+@Component({
+  selector: 'app-dashboard',
+  standalone: true,                      // ← No NgModule needed
+  imports: [CommonModule, FormsModule],  // ← Declares its own imports
+  templateUrl: './dashboard.component.html'
+})
+export class DashboardComponent {}
 ```
 
-> 💡 **Key benefit:** Each component is **self-contained** — it declares its own dependencies. No more shared `AppModule` that grows into a 200-line import list.
+### 🎓 Why Standalone? (Interview)
+
+| Benefit | Explanation |
+|---------|-------------|
+| **Tree-shakeable** | Unused components are excluded from the production build |
+| **Self-documenting** | Each component's `imports` array shows exactly what it uses |
+| **No module bloat** | No 200-line `AppModule` that imports everything |
+| **Lazy-loadable** | Each component can be code-split independently |
+| **Future direction** | Angular team recommends standalone for all new projects |
 
 ---
 
@@ -137,696 +118,298 @@ A **SPA** (Single Page Application) loads a **single HTML page** on the first vi
 
 ```
 frontend/src/
-│
-├── 📄 index.html                              ← SPA shell — single HTML page
-│   └── Contains <app-root></app-root> tag where Angular mounts
-│
-├── 📄 main.ts                                 ← 🚀 Bootstrap entry point
-│   └── bootstrapApplication(App, appConfig)
-│
-├── 📄 styles.css                              ← 🎨 Global CSS styles
+├── 📄 index.html                       ← SPA shell: <app-root></app-root>
+├── 📄 main.ts                          ← bootstrapApplication(App, appConfig)
+├── 📄 styles.css                       ← Global styles
 │
 └── 📂 app/
-    │
-    ├── 📄 app.ts                              ← 🅰️ Root Component (shell)
-    │   └── Contains <router-outlet /> — placeholder for routed components
-    │
-    ├── 📄 app.html                            ← Root template: just <router-outlet />
-    │
-    ├── 📄 app.css                             ← Root component styles (minimal)
-    │
-    ├── 📄 app.routes.ts                       ← 🛤️ Route definitions
-    │   └── Maps URLs to components:
-    │       "/" → redirect to "/login"
-    │       "/login" → LoginComponent
-    │       "/dashboard" → DashboardComponent + canActivate: [authGuard]
-    │       "/**" → redirect to "/login"
-    │
-    ├── 📄 app.config.ts                       ← ⚙️ Application-wide providers
-    │   └── provideRouter(routes)
-    │   └── provideHttpClient(withFetch())
+    ├── 📄 app.ts                       ← Root Component (just <router-outlet />)
+    ├── 📄 app.html                     ← Template: <router-outlet />
+    ├── 📄 app.css                      ← Minimal root styles
+    ├── 📄 app.routes.ts                ← Route definitions (5 routes)
+    ├── 📄 app.config.ts                ← provideRouter + provideHttpClient(withFetch())
     │
     ├── 📂 guards/
-    │   └── 📄 auth.guard.ts                   ← 🔒 Blocks /dashboard when not logged in
-    │       └── Calls authService.isLoggedIn() → redirects to /login if false
+    │   └── 📄 auth.guard.ts            ← CanActivateFn: blocks /dashboard & /simulator
     │
     ├── 📂 services/
-    │   ├── 📄 auth.service.ts                 ← 📡 Auth HTTP + sessionStorage session
-    │   │   ├── register(payload) → POST /api/auth/register
-    │   │   ├── login(payload)    → POST /api/auth/login + auto setSession()
-    │   │   ├── setSession(user)  → writes to sessionStorage
-    │   │   ├── getSession()      → reads from sessionStorage
-    │   │   ├── isLoggedIn()      → checks sessionStorage key presence
-    │   │   └── logout()          → clears sessionStorage + navigates to /login
-    │   │
-    │   └── 📄 virtual-card.service.ts        ← 📡 HTTP calls to /api/cards + /api/transactions
-    │       ├── getCardsByUserId(userId)
-    │       ├── createCard(userId, dailyLimit)
-    │       ├── processTransaction(cardId, amount, merchantName)
-    │       └── getTransactionsByCardId(cardId)
+    │   ├── 📄 auth.service.ts          ← register(), login(), setSession(), logout()
+    │   └── 📄 virtual-card.service.ts  ← CRUD cards + transactions
     │
     ├── 📂 login/
-    │   ├── 📄 login.component.ts              ← 📝 Login + Signup tab logic
-    │   │   ├── activeTab: 'login' | 'signup'
-    │   │   ├── onLogin() → AuthService.login() → setSession() → /dashboard
-    │   │   └── onSignup() → AuthService.register() → setSession() → /dashboard
-    │   └── 📄 login.component.html            ← 🎨 Bootstrap card with Sign In / Create Account tabs
-    │       └── Template-driven form with validation + alerts
+    │   ├── 📄 login.component.ts       ← Login + Signup tabbed logic
+    │   └── 📄 login.component.html     ← Bootstrap card with two-tab form
     │
-    └── 📂 dashboard/
-        ├── 📄 dashboard.component.ts          ← 📊 Real API calls, 3-tab sidebar, forkJoin transactions
-        │   ├── cards: VirtualCard[], loading: boolean
-        │   ├── transactions: TransactionResponse[], txLoading: boolean
-        │   ├── creatingCard: boolean, processingCardId: number | null
-        │   ├── activeNav: 'dashboard' | 'cards' | 'transactions'
-        │   ├── setActiveNav(nav) → triggers fetchAllTransactions() for tx tab
-        │   ├── fetchCards() → GET /api/cards/user/{userId}
-        │   ├── generateCard() → POST /api/cards
-        │   ├── simulatePurchase(cardId, event) → POST /api/transactions
-        │   ├── fetchAllTransactions() → forkJoin(...getTransactionsByCardId)
-        │   ├── DestroyRef + takeUntilDestroyed (prevents memory leaks)
-        │   └── ChangeDetectorRef.detectChanges() (forces re-render with withFetch())
-        └── 📄 dashboard.component.html        ← 🎨 Sidebar + Dashboard/My Cards/Transactions tabs
+    ├── 📂 dashboard/
+    │   ├── 📄 dashboard.component.ts   ← Cards grid, toggle, delete, simulate, transactions
+    │   ├── 📄 dashboard.component.html ← 3-tab layout (Dashboard, My Cards, Transactions)
+    │   └── 📄 dashboard.component.css  ← Dark navy theme, credit card chrome
+    │
+    └── 📂 simulator/
+        ├── 📄 simulator.component.ts   ← QA testing tool: select card, enter amount, submit
+        ├── 📄 simulator.component.html ← Form + SUCCESS/DECLINED alert display
+        └── 📄 simulator.component.css  ← Dark theme, custom alerts
 ```
 
 ---
 
 ## 🚀 Application Bootstrap Flow
 
-Here's the step-by-step process of how Angular starts:
-
 ```
-  📄 index.html loads in browser
-      │
-      │  Contains: <app-root></app-root>
-      │  Includes: <script src="main.js"></script>
-      ▼
-  📄 main.ts executes
-      │
-      │  bootstrapApplication(App, appConfig)
-      │  ← Boots Angular with root component + providers
-      ▼
-  📄 app.config.ts provides:
-      │
-      ├── provideRouter(routes)          ← Enables Angular Router
-      ├── provideHttpClient(withFetch()) ← Enables HttpClient for API calls
-      └── provideBrowserGlobalErrorListeners()
-      │
-      ▼
-  📄 app.ts (Root Component) renders app.html
-      │
-      │  Template: <router-outlet />
-      │  ← This is WHERE routed components appear
-      ▼
-  📄 app.routes.ts evaluates current URL
-      │
-      ├── URL = "/"          → redirectTo "/login"
-      ├── URL = "/login"     → Load LoginComponent
-      ├── URL = "/dashboard" → Load DashboardComponent
-      └── URL = "/anything"  → redirectTo "/login"
-      │
-      ▼
-  🎯 LoginComponent renders inside <router-outlet />
+index.html
+    │
+    └── <app-root></app-root>
+            │
+            ▼
+main.ts: bootstrapApplication(App, appConfig)
+            │
+            ├── appConfig provides:
+            │   ├── provideRouter(routes)           ← enables <router-outlet>
+            │   ├── provideHttpClient(withFetch())  ← enables HttpClient injection
+            │   └── provideBrowserGlobalErrorListeners()
+            │
+            ▼
+App Component renders:
+    <router-outlet />
+            │
+            ▼
+    Router evaluates URL → loads matching component
 ```
 
 ---
 
 ## 🛤️ Routing Configuration
 
-### Route Table: `app.routes.ts`
-
 ```typescript
+// app.routes.ts
 export const routes: Routes = [
-  { path: '',          redirectTo: 'login', pathMatch: 'full' },
-  { path: 'login',    component: LoginComponent },
-  { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
-  { path: '**',       redirectTo: 'login' }
+  { path: '',           redirectTo: 'login', pathMatch: 'full' },
+  { path: 'login',      component: LoginComponent },
+  { path: 'dashboard',  component: DashboardComponent,  canActivate: [authGuard] },
+  { path: 'simulator',  component: SimulatorComponent,  canActivate: [authGuard] },
+  { path: '**',         redirectTo: 'login' }
 ];
 ```
 
-### Route Breakdown
-
-| Path | Component | Guard | Behavior | URL Example |
-|:----:|:---------:|:-----:|----------|:-----------:|
-| `''` | — | — | Redirects to `/login` (home page) | `localhost:4200/` |
-| `'login'` | `LoginComponent` | — | Shows login/signup tabs | `localhost:4200/login` |
-| `'dashboard'` | `DashboardComponent` | `authGuard` | Shows card management dashboard — **blocked if not logged in** | `localhost:4200/dashboard` |
-| `'**'` | — | — | Wildcard: catches all unknown URLs → redirects to `/login` | `localhost:4200/anything` |
-
-### What is `<router-outlet />`?
-
-```html
-<!-- app.html -->
-<router-outlet />
-```
-
-> 💡 `<router-outlet />` is a **placeholder** in the root component's template.  
-> Angular's Router looks at the current URL and **swaps in** the matching component:
-
-```
-  URL: /login                          URL: /dashboard
-  ┌─────────────────────┐              ┌─────────────────────┐
-  │ <app-root>          │              │ <app-root>          │
-  │   <router-outlet /> │              │   <router-outlet /> │
-  │   ┌───────────────┐ │              │   ┌───────────────┐ │
-  │   │ LoginComponent│ │   navigate   │   │  Dashboard    │ │
-  │   │ (form)        │ │ ──────────►  │   │  Component    │ │
-  │   └───────────────┘ │              │   │  (cards)      │ │
-  │                     │              │   └───────────────┘ │
-  └─────────────────────┘              └─────────────────────┘
-```
+| Route | Component | Protected | Description |
+|-------|-----------|:---------:|-------------|
+| `/` | *(redirects)* | No | Redirects to `/login` |
+| `/login` | LoginComponent | No | Login + signup form |
+| `/dashboard` | DashboardComponent | ✅ authGuard | Card management dashboard |
+| `/simulator` | SimulatorComponent | ✅ authGuard | QA transaction testing tool |
+| `/**` | *(redirects)* | No | Wildcard → redirects unknown URLs to `/login` |
 
 ---
 
-## 💉 Services & Dependency Injection
-
-### What is Dependency Injection (DI)?
-
-**DI** is a design pattern where a class **receives** its dependencies from the outside instead of creating them itself:
+## 🔒 Route Guard (authGuard)
 
 ```typescript
-// ❌ Without DI — tightly coupled
-class LoginComponent {
-  private authService = new AuthService(new HttpClient(...));  // Creates own dependency!
-}
+// guards/auth.guard.ts
+export const authGuard: CanActivateFn = () => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
 
-// ✅ With DI — Angular injects automatically
-class LoginComponent {
-  constructor(private authService: AuthService) {}             // Angular provides it!
-}
+  if (authService.isLoggedIn()) {
+    return true;
+  }
+  router.navigate(['/login']);
+  return false;
+};
 ```
 
-> 💡 Angular's DI system creates one **singleton** instance of each service and shares it across all components that request it.
+### 🎓 Why `CanActivateFn` Instead of a Class? (Interview)
 
-### `AuthService` — HTTP Communication + Session
+| Aspect | Class-Based Guard (old) | Functional Guard (FinVault) |
+|--------|:-----------------------:|:---------------------------:|
+| Syntax | `class AuthGuard implements CanActivate` | `const authGuard: CanActivateFn = () => {}` |
+| DI | Constructor injection | `inject()` function |
+| Boilerplate | requires `@Injectable()`, constructor | Just a function |
+| Angular recommendation | Legacy | **Recommended since Angular 17** |
+
+---
+
+## 📡 Services & Dependency Injection
+
+### AuthService
 
 ```typescript
-@Injectable({ providedIn: 'root' })    // ← Available app-wide (singleton)
+@Injectable({ providedIn: 'root' })
 export class AuthService {
-
-  private readonly apiUrl = 'http://localhost:8080/api/auth';
   private readonly SESSION_KEY = 'finvault_user';
 
-  register(payload: UserRegistrationRequest): Observable<RegistrationResponse> {
-    return this.http.post<RegistrationResponse>(`${this.apiUrl}/register`, payload);
-  }
-
-  login(payload: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiUrl}/login`, payload).pipe(
-      tap(res => this.setSession({ userId: res.userId, username: res.username, email: res.email }))
-    );  // ← automatically stores session on success
-  }
-
-  setSession(user: SessionUser): void {
-    sessionStorage.setItem(this.SESSION_KEY, JSON.stringify(user));
-  }
-
-  getSession(): SessionUser | null {
-    const raw = sessionStorage.getItem(this.SESSION_KEY);
-    return raw ? JSON.parse(raw) : null;
-  }
-
-  isLoggedIn(): boolean {
-    return sessionStorage.getItem(this.SESSION_KEY) !== null;
-  }
-
-  logout(): void {
-    sessionStorage.removeItem(this.SESSION_KEY);
-    this.router.navigate(['/login']);
-  }
+  register(payload): Observable<RegistrationResponse>    // POST /api/auth/register
+  login(payload): Observable<LoginResponse>              // POST /api/auth/login + auto setSession()
+  setSession(user: SessionUser): void                    // sessionStorage.setItem(...)
+  getSession(): SessionUser | null                       // sessionStorage.getItem(...)
+  isLoggedIn(): boolean                                  // getSession() !== null
+  logout(): void                                         // removeItem + navigate('/login')
 }
 ```
 
-### `VirtualCardService` — Cards & Transactions
+### VirtualCardService
 
 ```typescript
 @Injectable({ providedIn: 'root' })
 export class VirtualCardService {
-  private readonly baseUrl = 'http://localhost:8080/api';
-
-  getCardsByUserId(userId: number): Observable<VirtualCard[]> {
-    return this.http.get<VirtualCard[]>(`${this.baseUrl}/cards/user/${userId}`);
-  }
-
-  createCard(userId: number, dailyLimit: number): Observable<VirtualCard> {
-    return this.http.post<VirtualCard>(`${this.baseUrl}/cards`, { userId, dailyLimit });
-  }
-
-  processTransaction(cardId: number, amount: number, merchantName: string): Observable<TransactionResponse> {
-    return this.http.post<TransactionResponse>(`${this.baseUrl}/transactions`, { cardId, amount, merchantName });
-  }
-
-  getTransactionsByCardId(cardId: number): Observable<TransactionResponse[]> {
-    return this.http.get<TransactionResponse[]>(`${this.baseUrl}/transactions/card/${cardId}`);
-  }
+  getCardsByUserId(userId): Observable<VirtualCard[]>                    // GET /api/cards/user/{userId}
+  createCard(userId, dailyLimit, vendorName): Observable<VirtualCard>    // POST /api/cards
+  toggleCard(cardId): Observable<VirtualCard>                            // PUT /api/cards/{id}/toggle
+  deleteCard(cardId): Observable<void>                                   // DELETE /api/cards/{id}
+  processTransaction(cardId, amount, merchantName): Observable<TransactionResponse>  // POST /api/transactions
+  getTransactionsByCardId(cardId): Observable<TransactionResponse[]>     // GET /api/transactions/card/{cardId}
 }
 ```
 
-### TypeScript Interfaces (Type Safety)
+### 🎓 Why `providedIn: 'root'`? (Interview)
 
-```typescript
-export interface UserRegistrationRequest {
-  username: string;
-  email: string;
-  password: string;
-}
-
-export interface RegistrationResponse {
-  message: string;
-  userId: number;
-}
-```
-
-> 💡 **Why interfaces?** TypeScript interfaces enforce the shape of data at compile time — if the API changes its response format, TypeScript catches the error immediately.
-
-### `provideHttpClient(withFetch())` — What is `withFetch()`?
-
-```typescript
-// app.config.ts
-provideHttpClient(withFetch())
-```
-
-| Option | Uses | Benefit |
-|--------|------|---------|
-| Default | `XMLHttpRequest` (XHR) | Legacy browser support |
-| `withFetch()` ⭐ | Browser's native `fetch` API | Modern, better SSR compatibility, recommended in Angular 21 |
+> Services with `providedIn: 'root'` are **singleton** — one instance shared across the entire app. Angular's tree-shaker can also remove the service entirely if nothing injects it. This is the modern alternative to listing services in a module's `providers` array.
 
 ---
 
-## 📝 Component Deep Dive: LoginComponent
+## 📝 Component: LoginComponent
 
-### What It Does
+| Property | Value |
+|----------|-------|
+| **Selector** | `app-login` |
+| **Standalone** | Yes |
+| **Imports** | `CommonModule`, `FormsModule` |
+| **Route** | `/login` |
 
-A centered Bootstrap card with **two tabs** — Sign In and Create Account — that communicate with the Spring Boot backend:
+### Key Behavior
 
 ```
-┌──────────────────────────────────────────┐
-│              🌑 Dark Background           │
-│                                           │
-│    ┌──────────────────────────────────┐   │
-│    │   💳 FinVault                    │   │  ← Blue header
-│    │   Smart-Card Budgeting System    │   │
-│    ├──────────────────────────────────┤   │
-│    │ [ Sign In ]   [ Create Account ] │   │  ← Tab switcher
-│    ├──────────────────────────────────┤   │
-│    │                                  │   │
-│    │   Email:     [____________]      │   │
-│    │   Password:  [____________]      │   │
-│    │                                  │   │
-│    │   [  Sign In  ]                  │   │  ← Calls onLogin()
-│    │                                  │   │
-│    └──────────────────────────────────┘   │
-│                                           │
-└──────────────────────────────────────────┘
+┌──────────────────────────────────────────────────┐
+│  LoginComponent                                  │
+│                                                  │
+│  activeTab: 'login' | 'signup'                   │
+│                                                  │
+│  onLogin():                                      │
+│    AuthService.login() → tap → setSession()      │
+│    → router.navigate(['/dashboard'])             │
+│                                                  │
+│  onSignup():                                     │
+│    AuthService.register() → setSession()         │
+│    → router.navigate(['/dashboard'])             │
+│                                                  │
+│  If already logged in → auto-redirect to         │
+│  /dashboard in constructor                       │
+└──────────────────────────────────────────────────┘
 ```
-
-### Component Logic — `login.component.ts`
-
-```typescript
-export class LoginComponent {
-
-  activeTab: 'login' | 'signup' = 'login';
-
-  // Login tab fields
-  loginData: LoginRequest = { email: '', password: '' };
-
-  // Signup tab fields
-  signupData: UserRegistrationRequest = { username: '', email: '', password: '' };
-
-  isLoading = false;
-  successMessage = '';
-  errorMessage = '';
-
-  switchTab(tab: 'login' | 'signup'): void {
-    this.activeTab = tab;
-    this.successMessage = '';
-    this.errorMessage = '';
-  }
-
-  onLogin(): void {
-    this.isLoading = true;
-    this.authService.login(this.loginData).subscribe({
-      next: () => {
-        this.isLoading = false;
-        // session auto-stored by AuthService.login() via tap()
-        this.router.navigate(['/dashboard']);
-      },
-      error: (err) => {
-        this.isLoading = false;
-        this.errorMessage = err.error?.error || 'Invalid email or password.';
-      }
-    });
-  }
-
-  onSignup(): void {
-    this.isLoading = true;
-    this.authService.register(this.signupData).subscribe({
-      next: (res) => {
-        this.isLoading = false;
-        // Manually set session then navigate (register doesn't auto-login)
-        this.authService.setSession({
-          userId: res.userId,
-          username: this.signupData.username,
-          email: this.signupData.email
-        });
-        this.router.navigate(['/dashboard']);
-      },
-      error: (err) => {
-        this.isLoading = false;
-        this.errorMessage = err.error?.error || 'Registration failed.';
-      }
-    });
-  }
-}
-```
-
-### Form Features
-
-| Feature | Implementation | Purpose |
-|---------|---------------|---------|
-| **Tab switching** | `activeTab: 'login' \| 'signup'` + `@if` blocks | Separate Sign In and Create Account forms |
-| **Two-way binding** | `[(ngModel)]="loginData.email"` | Syncs input field ↔ TypeScript property in real-time |
-| **Required validation** | `required` + `#emailField="ngModel"` | Prevents empty submissions |
-| **Email format** | `type="email"` + `email` attribute | Angular validates email format |
-| **Error messages** | `@if (emailField.invalid && emailField.touched)` | Shows only after user interacts |
-| **Submit guard** | `[disabled]="loginForm.invalid \|\| isLoading"` | Prevents invalid/duplicate submissions |
-| **Loading spinner** | `@if (isLoading)` → spinner inside button | Visual feedback during API call |
 
 ---
 
-## 📊 Component Deep Dive: DashboardComponent
+## 📊 Component: DashboardComponent
 
-### What It Does
+| Property | Value |
+|----------|-------|
+| **Selector** | `app-dashboard` |
+| **Standalone** | Yes |
+| **Imports** | `CommonModule`, `FormsModule` |
+| **Route** | `/dashboard` (guarded) |
 
-A full-page Bootstrap dashboard with a **sidebar** and **3 tabs** — Dashboard overview, My Cards (with generate + simulate), and Transactions history:
+### State Properties
 
-```
-┌──────────────────────────────────────────────────────────────────────┐
-│  🏦 FinVault    Smart-Card Budgeting System       [JD] │  ← Top Navbar
-├────────┬─────────────────────────────────────────────────────────────┤
-│        │  Welcome back, Johndoe 👋                                   │
-│ 🏠     │  [Dashboard tab]                                            │
-│ Dash   │                                                             │
-│        │  ┌───────┐ ┌──────────┐ ┌───────────┐                      │
-│ 💳     │  │Cards:2│ │Limit $1K │ │Spent $50  │                      │  ← Stats
-│ Cards  │  └───────┘ └──────────┘ └───────────┘                      │
-│        │                                                             │
-│ 📊     │  CARDS OVERVIEW (read-only)                                 │
-│ Trans  │  ┌───────────┐ ┌───────────┐                               │  ← Cards
-│        │  │ **** 1234 │ │ **** 5678 │                               │
-│ 🚪     │  │ $500 limit│ │ $200 limit│                               │
-│ Logout │  └───────────┘ └───────────┘                               │
-├────────┴─────────────────────────────────────────────────────────────┤
-```
+| Property | Type | Purpose |
+|----------|------|---------|
+| `cards` | `VirtualCard[]` | All user's cards |
+| `transactions` | `TransactionResponse[]` | Merged transaction history |
+| `newCardLimit` | `number` | Form field: daily limit for new card |
+| `newVendorName` | `string` | Form field: vendor name for new card |
+| `activeNav` | `string` | Active sidebar tab (`'dashboard'`, `'cards'`, `'transactions'`) |
+| `togglingCardId` | `number \| null` | Concurrency guard for freeze/unfreeze |
+| `deletingCardId` | `number \| null` | Concurrency guard for card deletion |
+| `processingCardId` | `number \| null` | Concurrency guard for quick-simulate |
 
-### Live API Data (No More Mock Data)
+### Key Methods
 
-```typescript
-export class DashboardComponent implements OnInit {
+| Method | Trigger | Flow |
+|--------|---------|------|
+| `fetchCards()` | `ngOnInit`, after create/toggle/delete | GET → `cards = data` → `cdr.detectChanges()` |
+| `generateCard()` | Form submit | POST (userId, limit, vendorName) → `fetchCards()` |
+| `toggleCard(id)` | Freeze/Unfreeze button | PUT → `fetchCards()` |
+| `deleteCard(id)` | Delete button | DELETE → `fetchCards()` |
+| `simulatePurchase(id)` | Quick-buy button | POST (cardId, $50, "Coffee Shop") → `fetchCards()` |
+| `fetchAllTransactions()` | Transactions tab activated | `forkJoin` per card → flatten → sort newest-first |
+| `goToSimulator()` | Sidebar link | `router.navigate(['/simulator'])` |
 
-  cards: VirtualCard[] = [];               // Loaded from GET /api/cards/user/{userId}
-  loading = false;                          // Shows spinner during fetch
-  creatingCard = false;                    // Shows spinner on Generate button
-  processingCardId: number | null = null;  // Per-card processing lock
+### 🎓 Why Concurrency Guards? (Interview)
 
-  transactions: TransactionResponse[] = []; // Loaded from all cards via forkJoin
-  txLoading = false;
-
-  activeNav = 'dashboard';                 // Controls which tab is visible
-
-  private readonly destroyRef = inject(DestroyRef);
-  private readonly cdr = inject(ChangeDetectorRef);
-
-  ngOnInit(): void {
-    this.user = this.authService.getSession(); // Read from sessionStorage
-    this.fetchCards();
-  }
-
-  setActiveNav(nav: string): void {
-    this.activeNav = nav;
-    if (nav === 'transactions') {
-      this.fetchAllTransactions();   // Lazy-loads when tab is opened
-    }
-  }
-
-  fetchAllTransactions(): void {
-    // forkJoin fires all card requests in parallel, then merges + sorts
-    const requests = this.cards.map(c =>
-      this.cardService.getTransactionsByCardId(c.id)
-        .pipe(catchError(() => of([])))
-    );
-    forkJoin(requests).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: (results) => {
-        this.transactions = results.flat()
-          .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-        this.txLoading = false;
-        this.cdr.detectChanges();    // Required: withFetch() bypasses zone.js
-      }
-    });
-  }
-}
-```
-
-### The 3 Dashboard Tabs
-
-| Tab | Sidebar Button | What It Shows |
-|-----|:---:|------|
-| **Dashboard** | 🏠 | Stats row (total cards, total limit, spent today) + read-only card overview grid |
-| **My Cards** | 💳 | Generate New Card form + card grid with ☕ Simulate $50 Purchase button per card |
-| **Transactions** | 📊 | Full transaction history table (merchant, amount, status badge, timestamp) with Refresh button |
+> `togglingCardId`, `deletingCardId`, and `processingCardId` prevent **concurrent HTTP calls** for the same card. If the user double-clicks "Freeze", only one PUT request fires. This prevents race conditions and provides visual feedback (button disabled while in-flight).
 
 ---
 
-## 🔗 Angular ↔ Spring Boot Communication
+## 🧪 Component: SimulatorComponent
 
-### The Full Request Flow
+| Property | Value |
+|----------|-------|
+| **Selector** | `app-simulator` |
+| **Standalone** | Yes |
+| **Imports** | `CommonModule`, `FormsModule`, `RouterModule` |
+| **Route** | `/simulator` (guarded) |
+
+### Purpose
+
+A dedicated **QA testing tool** that lets testers simulate transactions with full control over:
+- Which card to charge (dropdown of ACTIVE cards only)
+- The exact dollar amount
+- The merchant name
+
+### Key Behavior
 
 ```
-  👤 User clicks "Register"
-      │
-      ▼
-  📄 LoginComponent.onSubmit()
-      │
-      │  this.authService.register(this.formData)
-      ▼
-  📡 AuthService.register(payload)
-      │
-      │  this.http.post('http://localhost:8080/api/auth/register', payload)
-      ▼
-  🌐 Browser's Fetch API sends HTTP request
-      │
-      │  POST /api/auth/register
-      │  Content-Type: application/json
-      │  Body: { "username": "johndoe", "email": "john@example.com", "password": "..." }
-      ▼
-  🖥️ Spring Boot receives request (port 8080)
-      │
-      │  AuthController → UserService → UserRepository → MySQL
-      ▼
-  📨 JSON Response sent back
-      │
-      │  201 Created
-      │  { "message": "User registered successfully", "userId": 1 }
-      ▼
-  📡 AuthService Observable emits response
-      │
-      ▼
-  📄 LoginComponent.subscribe({ next: (res) => ... })
-      │
-      │  Shows success alert
-      │  setTimeout → router.navigate(['/dashboard'])
-      ▼
-  🛤️ Angular Router loads DashboardComponent
+1. ngOnInit → fetchCards() → filter ACTIVE cards into dropdown
+2. User selects card, enters amount + merchant name
+3. onSubmit() → POST /api/transactions
+4. SUCCESS → green alert ("Transaction APPROVED — $X.XX charged to...")
+5. DECLINED (200 with DECLINED status OR 422) → red alert ("exceeds daily limit")
 ```
 
-### Observables — Angular's Async Pattern
+### 🎓 Why a Dedicated `/simulator` Route? (Interview)
 
-```typescript
-// AuthService returns an Observable (not a Promise!)
-this.authService.register(this.formData).subscribe({
-  next: (res) => { /* Success handler */ },
-  error: (err) => { /* Error handler */ }
-});
-```
-
-> 💡 **Observable vs Promise:**
->
-> | Feature | Promise | Observable |
-> |---------|:-------:|:----------:|
-> | Values emitted | One | One or many |
-> | Cancelable | No | Yes (`unsubscribe()`) |
-> | Lazy | No (executes immediately) | Yes (executes on subscribe) |
-> | Used by | `fetch()` API | Angular `HttpClient` |
+> The Dashboard has a quick-simulate button ($50 to "Coffee Shop"), but the Simulator provides **full control** for QA scenarios — testing edge cases like exact-limit amounts, boundary values, and multiple merchants. Separating it into its own route keeps the Dashboard focused on management, not testing.
 
 ---
 
-## 🎨 Bootstrap 5 Integration
+## 🔄 Change Detection with Fetch API
 
-### How Bootstrap is Registered
+### The Problem
 
-Bootstrap CSS is registered **globally** in `angular.json`, making it available to every component:
+`provideHttpClient(withFetch())` uses the native **Fetch API**, which resolves promises **outside Angular's zone.js**. HTTP callbacks don't automatically trigger template re-renders.
 
-```json
-// angular.json → architect → build → options → styles
-"styles": [
-  "node_modules/bootstrap/dist/css/bootstrap.min.css",
-  "src/styles.css"
-]
-```
-
-### Why Global Registration?
-
-| Approach | Pros | Cons | Used in FinVault? |
-|----------|------|------|:-----------------:|
-| Global via `angular.json` | Available everywhere; no per-component imports | Entire CSS is bundled | ✅ Yes |
-| Per-component `@import` | Tree-shakeable; only loads what's needed | Must import in every component | No |
-
-### Bootstrap Classes Used in FinVault
-
-| Class | Purpose | Where Used |
-|-------|---------|------------|
-| `min-vh-100` | Full viewport height | Login page, Dashboard |
-| `d-flex`, `align-items-center`, `justify-content-center` | Flexbox centering | Login card centering |
-| `card`, `card-header`, `card-body`, `card-footer` | Card component | Login form, Virtual cards |
-| `form-control`, `form-label` | Form styling | Registration inputs |
-| `btn btn-primary` | Primary action button | Submit button |
-| `alert alert-success`, `alert alert-danger` | Alert banners | Success/error messages |
-| `badge bg-success` | Status badges | "Online" indicator, card statuses |
-| `row`, `col-md-3`, `col-md-6`, `col-xl-3` | Responsive grid | Stats row, card grid |
-| `bg-dark`, `bg-primary`, `text-white` | Color utilities | Dark theme, colored cards |
-| `shadow`, `shadow-lg` | Box shadows | Cards, navbar |
-| `navbar`, `navbar-dark`, `navbar-brand` | Navigation bar | Dashboard top nav |
-| `spinner-border` | Loading spinner | Submit button loading state |
-
----
-
-## 🔑 Key Angular Concepts Used
-
-### 1. Template-Driven Forms (FormsModule)
-
-```html
-<!-- Two-way data binding with ngModel -->
-<input [(ngModel)]="formData.username" name="username" required minlength="3" #usernameField="ngModel" />
-
-<!-- Conditional error message -->
-@if (usernameField.invalid && usernameField.touched) {
-  <div class="text-danger">Username must be at least 3 characters.</div>
-}
-```
-
-| Concept | Syntax | Purpose |
-|---------|--------|---------|
-| Two-way binding | `[(ngModel)]="property"` | Input ↔ component property stay in sync |
-| Template reference | `#usernameField="ngModel"` | Access the field's validation state in template |
-| `touched` | `usernameField.touched` | True after user has focused and left the field |
-| `invalid` | `usernameField.invalid` | True when validation rules fail |
-
-### 2. Angular 17+ Control Flow
-
-```html
-<!-- Conditional rendering -->
-@if (isLoading) {
-  <span class="spinner-border"></span>
-} @else {
-  Register & Continue →
-}
-
-<!-- List rendering -->
-@for (card of mockCards; track card.id) {
-  <div class="card">{{ card.name }}</div>
-}
-```
-
-> 💡 These replace the older `*ngIf` and `*ngFor` directives — cleaner syntax, better performance, and built into the framework (no imports needed).
-
-### 3. Property Binding & Event Binding
-
-| Syntax | Name | Direction | Example |
-|--------|------|:---------:|---------|
-| `{{ value }}` | Interpolation | Component → Template | `{{ card.cardNumber }}` |
-| `[property]="value"` | Property binding | Component → Template | `[disabled]="isLoading"` |
-| `(event)="handler()"` | Event binding | Template → Component | `(ngSubmit)="onLogin()"` |
-| `[(ngModel)]="value"` | Two-way binding | Both directions | `[(ngModel)]="loginData.email"` |
-
-### 4. `ChangeDetectorRef` — Forcing Re-Render with `withFetch()`
+### The Solution Applied in FinVault
 
 ```typescript
 private readonly cdr = inject(ChangeDetectorRef);
 
-fetchCards(): void {
-  this.cardService.getCardsByUserId(userId).subscribe({
-    next: (cards) => {
-      this.cards = cards;
-      this.cdr.detectChanges();  // ← REQUIRED
-    }
-  });
-}
-```
-
-> `provideHttpClient(withFetch())` uses the browser's native Fetch API, which resolves Promises **outside Angular's zone.js** change-detection zone. Without `cdr.detectChanges()`, the UI does not update even though the data has arrived.
-
-### 5. `DestroyRef` + `takeUntilDestroyed` — Memory Leak Prevention
-
-```typescript
-private readonly destroyRef = inject(DestroyRef);
-
-this.cardService.getCardsByUserId(userId)
-  .pipe(takeUntilDestroyed(this.destroyRef))  // ← auto-unsubscribes when component is destroyed
-  .subscribe({ next: (cards) => { ... } });
-```
-
-> Without `takeUntilDestroyed`, navigating away from the dashboard while an HTTP request is in flight could still trigger the subscribe callback and update a destroyed component's state.
-
-### 6. `forkJoin` + `catchError` — Parallel Requests
-
-```typescript
-import { forkJoin, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
-
-// Fire GET /api/transactions/card/{id} for every card simultaneously
-const requests = this.cards.map(c =>
-  this.cardService.getTransactionsByCardId(c.id)
-    .pipe(catchError(() => of([])))  // ← if one card fails, return empty array
-);
-
-forkJoin(requests).subscribe({
-  next: (results: TransactionResponse[][]) => {
-    // results[0] = transactions for card[0], results[1] = for card[1], ...
-    this.transactions = results.flat().sort(...);
+this.cardService.getCardsByUserId(userId).subscribe({
+  next: (data) => {
+    this.cards = data;
+    this.cdr.detectChanges();  // ← Force Angular to re-render
   }
 });
 ```
 
-> `forkJoin` waits for **all** Observables to complete, then emits a single array of results. It's the RxJS equivalent of `Promise.all()`.
+### 🎓 Why Use `withFetch()` Despite This Complexity? (Interview)
+
+> The Fetch API is **lighter**, supports **streaming**, and aligns with modern web standards. XMLHttpRequest is legacy. The cost is one extra `detectChanges()` call per subscriber — a trivial trade-off for a modern HTTP stack.
 
 ---
 
-## 📚 Glossary
+## 🧩 Key Angular Patterns Used
 
-| Term | Definition |
-|------|-----------|
-| **SPA** | Single Page Application — loads once, updates dynamically without full page reloads |
-| **Component** | A self-contained UI unit with its own template (HTML), styles (CSS), and logic (TypeScript) |
-| **Standalone Component** | Angular 17+ pattern — components declare their own imports, no NgModule required |
-| **Template** | The HTML file that defines a component's visual structure |
-| **Router** | Angular's navigation system — maps URL paths to components |
-| **router-outlet** | A placeholder in the template where the Router inserts the matched component |
-| **Service** | A singleton class that provides data, HTTP calls, or shared logic to components |
-| **Dependency Injection** | A design pattern where Angular automatically provides class dependencies via constructor |
-| **Observable** | A stream of data that components can subscribe to — Angular's HttpClient returns Observables |
-| **ngModel** | Angular directive for two-way data binding between form inputs and component properties |
-| **Template-Driven Forms** | Angular forms approach using `ngModel` in the template — simpler than Reactive Forms |
-| **Interpolation** | `{{ expression }}` — inserts a TypeScript expression's value into the HTML |
-| **Property Binding** | `[attr]="value"` — binds a component property to an HTML element attribute |
-| **Event Binding** | `(event)="handler()"` — calls a component method when an HTML event fires |
-| **Bootstrap** | A CSS framework providing pre-built responsive components and utility classes |
-| **TypeScript** | A typed superset of JavaScript — adds static types, interfaces, and compile-time error checking |
-| **HttpClient** | Angular's built-in HTTP service for making REST API calls |
+| Pattern | Usage in FinVault | Why |
+|---------|-------------------|-----|
+| **Template-driven forms** | Login, signup, card creation | Simple two-way binding with `[(ngModel)]` — appropriate for small forms |
+| **`@if` / `@for`** | Conditional rendering, card iteration | Modern control flow syntax (Angular 17+) |
+| **`takeUntilDestroyed()`** | Dashboard subscriptions | Auto-unsubscribes when component is destroyed — prevents memory leaks |
+| **`forkJoin()`** | Loading transactions for all cards in parallel | Waits for ALL requests to complete before emitting |
+| **`catchError(() => of([]))`** | Transaction fetch fallback | If one card's request fails, others still render |
+| **`tap()`** | Login response processing | Side effect (save session) without altering the stream |
 
 ---
 
 <p align="center">
   <b>🅰️ FinVault Frontend Documentation</b><br>
-  <sub>Sprint 1 — SCRUM-15 (Angular Login & Dashboard UI) | Sprint 2 — SCRUM-16, SCRUM-17 | Hardening — SCRUM-18</sub><br>
-  <sub>Part of the <a href="ARCHITECTURE.md">FinVault Documentation Suite</a></sub>
+  <sub>Angular 21 | 3 Components | 2 Services | 1 Route Guard | Standalone Architecture</sub><br>
+  <sub>Part of the <a href="../README.md">FinVault Documentation Suite</a></sub>
 </p>

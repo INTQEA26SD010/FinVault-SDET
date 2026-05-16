@@ -1,0 +1,183 @@
+<!-- FinVault — Transaction Simulator -->
+<div class="fv-shell d-flex flex-column">
+
+  <!-- ──────────── Navbar ──────────── -->
+  <nav class="fv-navbar d-flex align-items-center px-4 gap-3">
+    <div class="fv-brand"><span style="color:#4f8ef7">Fin</span>Vault</div>
+    <span style="background:rgba(79,142,247,0.14);color:#4f8ef7;font-size:0.6rem;
+                 font-weight:700;letter-spacing:1.2px;padding:3px 8px;border-radius:20px;
+                 border:1px solid rgba(79,142,247,0.22);">PREMIUM</span>
+    <span style="background:rgba(250,204,21,0.13);color:#facc15;font-size:0.6rem;
+                 font-weight:700;letter-spacing:1.2px;padding:3px 8px;border-radius:20px;
+                 border:1px solid rgba(250,204,21,0.22);">QA TOOLS</span>
+    <div class="ms-auto d-flex align-items-center gap-3">
+      <span class="d-none d-sm-inline" style="color:rgba(255,255,255,0.38);font-size:0.82rem;">
+        {{ user?.email }}
+      </span>
+      <div class="fv-avatar">{{ userInitials }}</div>
+    </div>
+  </nav>
+
+  <div class="d-flex flex-grow-1">
+
+    <!-- ──────────── Sidebar ──────────── -->
+    <aside class="fv-sidebar d-none d-md-flex flex-column py-4 px-3">
+      <div class="px-1 mb-3">
+        <div style="font-size:0.62rem;font-weight:700;letter-spacing:1.6px;color:rgba(255,255,255,0.2);">MENU</div>
+      </div>
+      <div class="d-flex flex-column">
+        <button type="button" class="sidebar-item" [routerLink]="['/dashboard']">
+          <span class="sidebar-icon">🏠</span> Dashboard
+        </button>
+        <button type="button" class="sidebar-item" [routerLink]="['/dashboard']">
+          <span class="sidebar-icon">💳</span> My Cards
+        </button>
+        <button type="button" class="sidebar-item" [routerLink]="['/dashboard']">
+          <span class="sidebar-icon">📊</span> Transactions
+        </button>
+        <button type="button" class="sidebar-item active">
+          <span class="sidebar-icon">🧪</span> Simulator
+        </button>
+      </div>
+      <div class="mt-auto">
+        <div class="sidebar-divider"></div>
+        <button type="button" class="sidebar-item" style="color:#f87171 !important;" (click)="logout()">
+          <span class="sidebar-icon">🚪</span> Logout
+        </button>
+      </div>
+    </aside>
+
+    <!-- ──────────── Main Content ──────────── -->
+    <main class="fv-main flex-grow-1 p-4 p-lg-5 overflow-auto">
+
+      <!-- Page header -->
+      <div class="mb-5">
+        <h3 class="fw-bold mb-1" style="color:#fff;font-size:1.45rem;">
+          Transaction Simulator 🧪
+        </h3>
+        <p class="mb-0" style="color:rgba(255,255,255,0.35);font-size:0.84rem;">
+          Fire test transactions against any of your active virtual cards to validate the Adjudication Engine.
+        </p>
+      </div>
+
+      <!-- ── Bootstrap Alert ── -->
+      @if (alertType) {
+        <div class="alert sim-alert d-flex align-items-start gap-3"
+             [ngClass]="alertType === 'success' ? 'alert-success-dark' : 'alert-danger-dark'"
+             role="alert">
+          <span class="sim-alert-icon">{{ alertType === 'success' ? '✅' : '❌' }}</span>
+          <div class="flex-grow-1">
+            <div class="sim-alert-title fw-semibold mb-1">
+              {{ alertType === 'success' ? 'APPROVED' : 'DECLINED' }}
+            </div>
+            <div class="sim-alert-msg">{{ alertMessage }}</div>
+            @if (lastTransaction) {
+              <div class="sim-alert-meta mt-2">
+                Ref #{{ lastTransaction.id }} &nbsp;·&nbsp;
+                {{ lastTransaction.timestamp | date:'medium' }}
+              </div>
+            }
+          </div>
+          <button type="button" class="btn-close sim-btn-close" aria-label="Dismiss"
+                  (click)="dismissAlert()"></button>
+        </div>
+      }
+
+      <!-- ── Simulator Form Card ── -->
+      <div class="sim-card">
+        <div class="sim-card-header mb-4">
+          <div class="sim-card-title">Process Test Transaction</div>
+          <div class="sim-card-subtitle">Only ACTIVE cards appear in the dropdown &mdash; frozen cards are excluded from testing.</div>
+        </div>
+
+        <!-- No active cards warning -->
+        @if (!loadingCards && activeCards.length === 0) {
+          <div class="sim-empty">
+            <div class="sim-empty-icon">💳</div>
+            <div class="sim-empty-msg">No active cards available.</div>
+            <div class="sim-empty-sub">Generate a card from the
+              <a [routerLink]="['/dashboard']" class="sim-link">My Cards</a> tab first.
+            </div>
+          </div>
+        }
+
+        @if (!loadingCards && activeCards.length > 0) {
+          <form (ngSubmit)="onSubmit()" #simForm="ngForm" novalidate>
+
+            <!-- Card Select -->
+            <div class="mb-4">
+              <label for="cardSelect" class="sim-label">Virtual Card</label>
+              <select id="cardSelect"
+                      class="form-select sim-select"
+                      name="cardSelect"
+                      [(ngModel)]="selectedCardId"
+                      required>
+                @for (card of activeCards; track card.id) {
+                  <option [ngValue]="card.id">{{ cardLabel(card) }}</option>
+                }
+              </select>
+              <div class="sim-field-hint">Only ACTIVE cards are shown.</div>
+            </div>
+
+            <!-- Amount -->
+            <div class="mb-4">
+              <label for="amount" class="sim-label">Amount ($)</label>
+              <input id="amount"
+                     type="number"
+                     class="form-control sim-input"
+                     name="amount"
+                     [(ngModel)]="amount"
+                     placeholder="e.g. 75.00"
+                     min="0.01"
+                     step="0.01"
+                     required
+                     #amountField="ngModel" />
+              @if (amountField.invalid && amountField.touched) {
+                <div class="sim-field-error">Please enter a valid positive amount.</div>
+              }
+            </div>
+
+            <!-- Merchant Name -->
+            <div class="mb-5">
+              <label for="merchantName" class="sim-label">Merchant Name</label>
+              <input id="merchantName"
+                     type="text"
+                     class="form-control sim-input"
+                     name="merchantName"
+                     [(ngModel)]="merchantName"
+                     placeholder="e.g. Amazon, Netflix, Coffee Shop"
+                     maxlength="100"
+                     required
+                     #merchantField="ngModel" />
+              @if (merchantField.invalid && merchantField.touched) {
+                <div class="sim-field-error">Merchant name is required.</div>
+              }
+            </div>
+
+            <!-- Submit -->
+            <button type="submit"
+                    class="btn sim-btn-submit w-100"
+                    [disabled]="simForm.invalid || isSubmitting || !selectedCardId">
+              @if (isSubmitting) {
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Processing&hellip;
+              } @else {
+                ⚡ Process Test Transaction
+              }
+            </button>
+
+          </form>
+        }
+
+        @if (loadingCards) {
+          <div class="d-flex justify-content-center py-5">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading cards&hellip;</span>
+            </div>
+          </div>
+        }
+      </div><!-- /sim-card -->
+
+    </main>
+  </div>
+</div>
