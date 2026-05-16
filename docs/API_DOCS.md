@@ -7,8 +7,8 @@
 
 # 📡 FinVault — REST API Documentation
 
-> **Ticket:** SCRUM-14 | **Base URL (local):** `http://localhost:8080`  
-> **Format:** JSON | **Auth:** None (Sprint 1 — open endpoints; JWT added in security sprint)
+> **Tickets:** SCRUM-14, SCRUM-16, SCRUM-17, SCRUM-18, SCRUM-19, SCRUM-20 | **Base URL (local):** `http://localhost:8080`  
+> **Format:** JSON | **Auth:** None (open endpoints — JWT planned for security sprint)
 
 ---
 
@@ -25,12 +25,14 @@
 | 7 | [Endpoint 2: Login User](#-endpoint-2-login-user) | `POST /api/auth/login` |
 | 8 | [Endpoint 3: Get User's Virtual Cards](#-endpoint-3-get-users-virtual-cards) | `GET /api/cards/user/{userId}` |
 | 9 | [Endpoint 4: Create Virtual Card](#-endpoint-4-create-virtual-card) | `POST /api/cards` |
-| 10 | [Endpoint 5: Simulate Transaction](#-endpoint-5-simulate-transaction) | `POST /api/transactions` |
-| 11 | [Endpoint 6: Get Transactions by Card](#-endpoint-6-get-transactions-by-card) | `GET /api/transactions/card/{cardId}` |
-| 12 | [Why DTOs? — Anti-Pattern Prevention](#-why-dtos--anti-pattern-prevention) | Why we never return @Entity directly |
-| 13 | [Security Configuration](#-security-configuration) | BCrypt + permitAll baseline |
-| 14 | [Testing the API with cURL](#-testing-the-api-with-curl) | Ready-to-use commands |
-| 15 | [Glossary](#-glossary) | Key API terms |
+| 10 | [Endpoint 5: Toggle Card Status](#-endpoint-5-toggle-card-status) | `PUT /api/cards/{id}/toggle` |
+| 11 | [Endpoint 6: Delete Virtual Card](#-endpoint-6-delete-virtual-card) | `DELETE /api/cards/{id}` |
+| 12 | [Endpoint 7: Simulate Transaction](#-endpoint-7-simulate-transaction) | `POST /api/transactions` |
+| 13 | [Endpoint 8: Get Transactions by Card](#-endpoint-8-get-transactions-by-card) | `GET /api/transactions/card/{cardId}` |
+| 14 | [Why DTOs? — Anti-Pattern Prevention](#-why-dtos--anti-pattern-prevention) | Why we never return @Entity directly |
+| 15 | [Security Configuration](#-security-configuration) | BCrypt + permitAll baseline |
+| 16 | [Testing the API with cURL](#-testing-the-api-with-curl) | Ready-to-use commands |
+| 17 | [Glossary](#-glossary) | Key API terms |
 
 ---
 
@@ -82,9 +84,9 @@ HTTP methods tell the server **what action** to perform on a resource:
 |:------:|:-----------:|---------|---------|:--------------:|
 | `GET` | **R**ead | Retrieve data without modifying anything | Get all user's cards | ✅ `GET /api/cards/user/{userId}` |
 | `POST` | **C**reate | Submit new data to be created/processed | Register a new user | ✅ `POST /api/auth/register` |
-| `PUT` | **U**pdate | Replace an existing resource entirely | Update card daily limit | 🔜 Future sprint |
-| `PATCH` | **U**pdate | Partially modify an existing resource | Freeze a single card | 🔜 Future sprint |
-| `DELETE` | **D**elete | Remove a resource | Cancel a virtual card | 🔜 Future sprint |
+| `PUT` | **U**pdate | Replace/update an existing resource | Toggle card freeze | ✅ `PUT /api/cards/{id}/toggle` |
+| `PATCH` | **U**pdate | Partially modify an existing resource | Update a single field | 🔜 Future sprint |
+| `DELETE` | **D**elete | Remove a resource | Delete a virtual card | ✅ `DELETE /api/cards/{id}` |
 
 > 💡 **GET is safe & idempotent** — calling it 100 times has the same effect as calling it once. It never modifies data.  
 > 💡 **POST is NOT idempotent** — calling it 100 times creates 100 users!
@@ -129,6 +131,8 @@ Every API response includes a **status code** — a 3-digit number that describe
 | `POST` | `/api/auth/login` | Login existing user | ✅ JSON | `200` + userId, username, email |
 | `GET` | `/api/cards/user/{userId}` | Get user's cards | ❌ None | `200` + card list |
 | `POST` | `/api/cards` | Create a new virtual card | ✅ JSON | `201` + new card |
+| `PUT` | `/api/cards/{id}/toggle` | Freeze or unfreeze a card | ❌ None | `200` + updated card |
+| `DELETE` | `/api/cards/{id}` | Permanently delete a card | ❌ None | `204` No Content |
 | `POST` | `/api/transactions` | Simulate a purchase | ✅ JSON | `200` SUCCESS or `422` DECLINED |
 | `GET` | `/api/transactions/card/{cardId}` | Get transaction history for a card | ❌ None | `200` + transaction list |
 
@@ -139,14 +143,16 @@ com.finvault.backend
 │
 ├── 📂 controller/                    ← 🎯 HTTP layer — receives requests, returns responses
 │   ├── AuthController.java           ← POST /api/auth/register, POST /api/auth/login
-│   ├── VirtualCardController.java    ← GET  /api/cards/user/{userId}, POST /api/cards
+│   ├── VirtualCardController.java    ← GET /api/cards/user/{userId}, POST /api/cards,
+│   │                                    PUT /api/cards/{id}/toggle, DELETE /api/cards/{id}
 │   └── TransactionController.java    ← POST /api/transactions, GET /api/transactions/card/{id}
 │
 ├── 📂 dto/                           ← 📦 Data Transfer Objects — API contract
 │   ├── UserRegistrationDto.java      ← Inbound: { username, email, password }
 │   ├── LoginRequestDto.java          ← Inbound: { email, password }
 │   ├── LoginResponseDto.java         ← Outbound: { userId, username, email, message }
-│   ├── VirtualCardResponseDto.java   ← Outbound: { id, cardNumber, cvv, dailyLimit, balance }
+│   ├── CreateVirtualCardDto.java     ← Inbound: { userId, dailyLimit, vendorName }
+│   ├── VirtualCardResponseDto.java   ← Outbound: { id, cardNumber, cvv, dailyLimit, balance, status, vendorName }
 │   ├── TransactionRequestDto.java    ← Inbound: { cardId, amount, merchantName }
 │   └── TransactionResponseDto.java   ← Outbound: { id, cardId, amount, merchantName, timestamp, status }
 │
@@ -677,7 +683,7 @@ curl http://localhost:8080/api/cards/user/1
 
 ### `POST /api/cards`
 
-Creates a new virtual card for a registered user with a configurable daily spending limit.
+Creates a new virtual card for a registered user with a configurable daily spending limit and a vendor/purpose label.
 
 ### Request Body
 
@@ -685,11 +691,13 @@ Creates a new virtual card for a registered user with a configurable daily spend
 |:-----:|:----:|:--------:|-------------|
 | `userId` | `Long` | ✅ | The ID of the user who will own this card |
 | `dailyLimit` | `BigDecimal` | ✅ | Maximum daily spend limit (e.g., `500.00`) |
+| `vendorName` | `String` | ✅ | Human-readable vendor or purpose label (e.g. `"Amazon"`, `"Netflix"`) |
 
 ```json
 {
   "userId": 1,
-  "dailyLimit": 500.00
+  "dailyLimit": 500.00,
+  "vendorName": "Amazon"
 }
 ```
 
@@ -699,8 +707,11 @@ Creates a new virtual card for a registered user with a configurable daily spend
 {
   "id": 3,
   "cardNumber": "4829103746582910",
+  "cvv": "382",
   "dailyLimit": 500.00,
-  "status": "ACTIVE"
+  "balance": 0.00,
+  "status": "ACTIVE",
+  "vendorName": "Amazon"
 }
 ```
 
@@ -723,18 +734,114 @@ Returned when the `userId` does not match any existing user.
 | `expiryDate` | Calculated as **current date + 3 years** using `LocalDate.now().plusYears(3)` |
 | `balance` | Defaults to `0.0` |
 | `status` | Defaults to `ACTIVE` |
+| `vendorName` | Trimmed and saved from the request body |
 
 ### cURL Example
 
 ```bash
 curl -X POST http://localhost:8080/api/cards \
   -H "Content-Type: application/json" \
-  -d '{"userId": 1, "dailyLimit": 500.00}'
+  -d '{"userId": 1, "dailyLimit": 500.00, "vendorName": "Amazon"}'
 ```
 
 ---
 
-## 💳 Endpoint 5: Simulate Transaction
+## ❄️ Endpoint 5: Toggle Card Status
+
+### `PUT /api/cards/{id}/toggle`
+
+Flips a virtual card's status between `ACTIVE` and `FROZEN`. A frozen card will have all new transactions declined.
+
+### Request
+
+```http
+PUT /api/cards/1/toggle HTTP/1.1
+Host: localhost:8080
+```
+
+No request body required.
+
+### Path Parameter
+
+| Parameter | Type | Required | Description |
+|:---------:|:----:|:--------:|-------------|
+| `id` | `Long` | ✅ | The database ID of the card to toggle |
+
+### Success Response — `200 OK`
+
+Returns the full updated card DTO with the new status:
+
+```json
+{
+  "id": 1,
+  "cardNumber": "4829103746582910",
+  "cvv": "382",
+  "dailyLimit": 500.00,
+  "balance": 75.00,
+  "status": "FROZEN",
+  "vendorName": "Amazon"
+}
+```
+
+### Error Response — `404 Not Found`
+
+Returned when no card exists with the given ID.
+
+### Toggle Logic
+
+```
+current status = ACTIVE  →  new status = FROZEN
+current status = FROZEN  →  new status = ACTIVE
+```
+
+### cURL Example
+
+```bash
+curl -X PUT http://localhost:8080/api/cards/1/toggle
+```
+
+---
+
+## 🗑️ Endpoint 6: Delete Virtual Card
+
+### `DELETE /api/cards/{id}`
+
+Permanently removes a virtual card and all its associated transaction records from the database.
+
+### Request
+
+```http
+DELETE /api/cards/1 HTTP/1.1
+Host: localhost:8080
+```
+
+No request body required.
+
+### Path Parameter
+
+| Parameter | Type | Required | Description |
+|:---------:|:----:|:--------:|-------------|
+| `id` | `Long` | ✅ | The database ID of the card to delete |
+
+### Success Response — `204 No Content`
+
+Empty body. The card and all its child transaction rows are deleted.
+
+### Error Response — `404 Not Found`
+
+Returned when no card exists with the given ID.
+
+> ⚠️ **Cascade behaviour:** The `VirtualCard` entity uses `CascadeType.ALL, orphanRemoval = true` on its `transactions` collection. When a card is deleted, Hibernate first deletes all child `Transaction` rows, then the card row itself — avoiding MySQL FK constraint violations.
+
+### cURL Example
+
+```bash
+curl -X DELETE http://localhost:8080/api/cards/1
+```
+
+---
+
+## 💳 Endpoint 7: Simulate Transaction
 
 ### `POST /api/transactions`
 
@@ -814,7 +921,7 @@ curl -X POST http://localhost:8080/api/transactions \
 
 ---
 
-## 📜 Endpoint 6: Get Transactions by Card
+## 📜 Endpoint 8: Get Transactions by Card
 
 ### `GET /api/transactions/card/{cardId}`
 
@@ -907,6 +1014,6 @@ curl http://localhost:8080/api/transactions/card/1
 
 <p align="center">
   <b>📡 FinVault REST API Documentation</b><br>
-  <sub>Sprint 1 — SCRUM-14 | Sprint 2 — SCRUM-16, SCRUM-17 | Hardening — SCRUM-18</sub><br>
+  <sub>Sprint 1 — SCRUM-14 | Sprint 2 — SCRUM-16, SCRUM-17 | Hardening — SCRUM-18, SCRUM-19 | Card Management — SCRUM-20</sub><br>
   <sub>Part of the <a href="ARCHITECTURE.md">FinVault Documentation Suite</a></sub>
 </p>

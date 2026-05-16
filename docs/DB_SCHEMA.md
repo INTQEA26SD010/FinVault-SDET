@@ -220,6 +220,7 @@ CREATE TABLE virtual_cards (
     expiry_date DATE             NOT NULL               COMMENT 'Format: YYYY-MM-DD (last day of month)',
     cvv         CHAR(3)          NOT NULL,
     daily_limit DECIMAL(10, 2)   NOT NULL  DEFAULT 0.00 COMMENT 'Max spend per day in base currency',
+    vendor_name VARCHAR(100)      NOT NULL  DEFAULT ''   COMMENT 'Vendor or purpose label (e.g. Amazon, Netflix)',
     status      ENUM(
                     'ACTIVE',
                     'FROZEN',
@@ -305,6 +306,7 @@ Both outcomes are persisted as a Transaction row for audit trail.
 | `expiry_date` | `DATE` | `NOT NULL` | Stored as `YYYY-MM-DD`; represents last valid day of the card |
 | `cvv` | `CHAR(3)` | `NOT NULL` | 3-digit Card Verification Value — **never exposed in API responses** |
 | `daily_limit` | `DECIMAL(10,2)` | `NOT NULL`, `DEFAULT 0.00` | Max daily spend — uses `DECIMAL` for cent-level precision (no `FLOAT`!) |
+| `vendor_name` | `VARCHAR(100)` | `NOT NULL`, `DEFAULT ''` | Human-readable label for the card's purpose or linked vendor (e.g. `Amazon`) |
 | `status` | `ENUM` | `NOT NULL`, `DEFAULT 'ACTIVE'` | Card lifecycle state (see table below) |
 | `created_at` | `DATETIME` | `NOT NULL`, `DEFAULT NOW()` | Auto-set on row creation — audit trail |
 
@@ -448,6 +450,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     expiry_date DATE             NOT NULL               COMMENT 'Format: YYYY-MM-DD',
     cvv         CHAR(3)          NOT NULL,
     daily_limit DECIMAL(10, 2)   NOT NULL  DEFAULT 0.00 COMMENT 'Max spend per day in base currency',
+    vendor_name VARCHAR(100)     NOT NULL  DEFAULT ''   COMMENT 'Vendor or purpose label (e.g. Amazon, Netflix)',
     status      ENUM(
                     'ACTIVE',
                     'FROZEN',
@@ -514,6 +517,6 @@ These SQL tables map directly to Java `@Entity` classes in the Spring Boot backe
 
 <p align="center">
   <b>🗄️ FinVault Database Schema Document</b><br>
-  <sub>Sprint 1 — SCRUM-11 (Initial DB Schema — Users & Virtual Cards) | Sprint 2 — SCRUM-17 (Transactions Table)</sub><br>
+  <sub>Sprint 1 — SCRUM-11 (Initial DB Schema — Users & Virtual Cards) | Sprint 2 — SCRUM-17 (Transactions Table) | Card Management — SCRUM-20 (vendor_name column, cascade delete)</sub><br>
   <sub>Part of the <a href="ARCHITECTURE.md">FinVault Documentation Suite</a></sub>
 </p>

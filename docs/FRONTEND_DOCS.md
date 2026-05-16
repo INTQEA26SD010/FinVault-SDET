@@ -7,7 +7,7 @@
 
 # 🅰️ FinVault — Frontend Documentation
 
-> **Tickets:** SCRUM-15, SCRUM-16, SCRUM-17, SCRUM-18 | **Framework:** Angular 21 (Standalone Components)  
+> **Tickets:** SCRUM-15, SCRUM-16, SCRUM-17, SCRUM-18, SCRUM-19, SCRUM-20, SCRUM-21 | **Framework:** Angular 21 (Standalone Components)  
 > **Styling:** Bootstrap 5 | **HTTP Client:** Angular `HttpClient` (`provideHttpClient(withFetch())`)
 
 ---
@@ -25,6 +25,7 @@
 | 7 | [Services & Dependency Injection](#-services--dependency-injection) | HttpClient and Angular DI |
 | 8 | [Component Deep Dive: LoginComponent](#-component-deep-dive-logincomponent) | Registration form — code walkthrough |
 | 9 | [Component Deep Dive: DashboardComponent](#-component-deep-dive-dashboardcomponent) | Card dashboard — layout and mock data |
+| 10 | [Component Deep Dive: SimulatorComponent](#-component-deep-dive-simulatorcomponent) | QA transaction testing tool |
 | 10 | [Angular ↔ Spring Boot Communication](#-angular--spring-boot-communication) | How frontend talks to backend |
 | 11 | [Bootstrap 5 Integration](#-bootstrap-5-integration) | CSS framework setup |
 | 12 | [Key Angular Concepts Used](#-key-angular-concepts-used) | Directives, bindings, forms |
@@ -257,10 +258,11 @@ Here's the step-by-step process of how Angular starts:
 
 ```typescript
 export const routes: Routes = [
-  { path: '',          redirectTo: 'login', pathMatch: 'full' },
-  { path: 'login',    component: LoginComponent },
-  { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
-  { path: '**',       redirectTo: 'login' }
+  { path: '',           redirectTo: 'login', pathMatch: 'full' },
+  { path: 'login',      component: LoginComponent },
+  { path: 'dashboard',  component: DashboardComponent,  canActivate: [authGuard] },
+  { path: 'simulator',  component: SimulatorComponent,  canActivate: [authGuard] },
+  { path: '**',         redirectTo: 'login' }
 ];
 ```
 
@@ -271,6 +273,7 @@ export const routes: Routes = [
 | `''` | — | — | Redirects to `/login` (home page) | `localhost:4200/` |
 | `'login'` | `LoginComponent` | — | Shows login/signup tabs | `localhost:4200/login` |
 | `'dashboard'` | `DashboardComponent` | `authGuard` | Shows card management dashboard — **blocked if not logged in** | `localhost:4200/dashboard` |
+| `'simulator'` | `SimulatorComponent` | `authGuard` | QA transaction testing tool — **blocked if not logged in** | `localhost:4200/simulator` |
 | `'**'` | — | — | Wildcard: catches all unknown URLs → redirects to `/login` | `localhost:4200/anything` |
 
 ### What is `<router-outlet />`?
@@ -360,6 +363,17 @@ export class AuthService {
 ### `VirtualCardService` — Cards & Transactions
 
 ```typescript
+export interface VirtualCard {
+  id: number;
+  cardNumber: string;
+  cvv: string;
+  dailyLimit: number;
+  balance: number;
+  status: string;        // 'ACTIVE' | 'FROZEN'
+  vendorName: string;    // Vendor/purpose label (e.g. "Amazon")
+  expiryDate?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class VirtualCardService {
   private readonly baseUrl = 'http://localhost:8080/api';
@@ -368,8 +382,16 @@ export class VirtualCardService {
     return this.http.get<VirtualCard[]>(`${this.baseUrl}/cards/user/${userId}`);
   }
 
-  createCard(userId: number, dailyLimit: number): Observable<VirtualCard> {
-    return this.http.post<VirtualCard>(`${this.baseUrl}/cards`, { userId, dailyLimit });
+  createCard(userId: number, dailyLimit: number, vendorName: string): Observable<VirtualCard> {
+    return this.http.post<VirtualCard>(`${this.baseUrl}/cards`, { userId, dailyLimit, vendorName });
+  }
+
+  toggleCard(cardId: number): Observable<VirtualCard> {
+    return this.http.put<VirtualCard>(`${this.baseUrl}/cards/${cardId}/toggle`, {});
+  }
+
+  deleteCard(cardId: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/cards/${cardId}`);
   }
 
   processTransaction(cardId: number, amount: number, merchantName: string): Observable<TransactionResponse> {
@@ -547,7 +569,11 @@ export class DashboardComponent implements OnInit {
   cards: VirtualCard[] = [];               // Loaded from GET /api/cards/user/{userId}
   loading = false;                          // Shows spinner during fetch
   creatingCard = false;                    // Shows spinner on Generate button
-  processingCardId: number | null = null;  // Per-card processing lock
+
+  // SCRUM-20: vendor input and per-card action guards
+  newVendorName = '';
+  togglingCardId: number | null = null;    // Prevents double-toggle
+  deletingCardId: number | null = null;    // Prevents double-delete
 
   transactions: TransactionResponse[] = []; // Loaded from all cards via forkJoin
   txLoading = false;
@@ -557,30 +583,64 @@ export class DashboardComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly cdr = inject(ChangeDetectorRef);
 
+  // Derived primary-account card display values
+  get mainCardNumber(): string { /* deterministic 16-digit from userId */ }
+  get mainCardExpiry(): string { /* current month + 4 years */ }
+  get timeGreeting(): string { /* Morning / Afternoon / Evening */ }
+
+  // Card chrome helpers
+  cardGradient(index: number): string { /* cycles through 5 gradient themes */ }
+  spentRatio(card: VirtualCard): number { /* balance / dailyLimit, capped at 1 */ }
+
   ngOnInit(): void {
-    this.user = this.authService.getSession(); // Read from sessionStorage
+    this.user = this.authService.getSession();
     this.fetchCards();
+  }
+
+  generateCard(): void {
+    // Calls createCard(userId, newDailyLimit, newVendorName); resets newVendorName on success
+  }
+
+  toggleCard(cardId: number): void {
+    if (this.togglingCardId !== null) return;   // Guard: only one toggle at a time
+    this.togglingCardId = cardId;
+    this.cardService.toggleCard(cardId).subscribe({
+      next: (updated) => {
+        const idx = this.cards.findIndex(c => c.id === cardId);
+        if (idx !== -1) this.cards[idx] = updated;
+        this.togglingCardId = null;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  deleteCard(cardId: number): void {
+    if (this.deletingCardId !== null) return;   // Guard: only one delete at a time
+    this.deletingCardId = cardId;
+    this.cardService.deleteCard(cardId).subscribe({
+      next: () => {
+        this.cards = this.cards.filter(c => c.id !== cardId);
+        this.deletingCardId = null;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   setActiveNav(nav: string): void {
     this.activeNav = nav;
-    if (nav === 'transactions') {
-      this.fetchAllTransactions();   // Lazy-loads when tab is opened
-    }
+    if (nav === 'transactions') this.fetchAllTransactions();
   }
 
   fetchAllTransactions(): void {
-    // forkJoin fires all card requests in parallel, then merges + sorts
     const requests = this.cards.map(c =>
-      this.cardService.getTransactionsByCardId(c.id)
-        .pipe(catchError(() => of([])))
+      this.cardService.getTransactionsByCardId(c.id).pipe(catchError(() => of([])))
     );
     forkJoin(requests).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (results) => {
         this.transactions = results.flat()
           .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
         this.txLoading = false;
-        this.cdr.detectChanges();    // Required: withFetch() bypasses zone.js
+        this.cdr.detectChanges();
       }
     });
   }
@@ -591,9 +651,53 @@ export class DashboardComponent implements OnInit {
 
 | Tab | Sidebar Button | What It Shows |
 |-----|:---:|------|
-| **Dashboard** | 🏠 | Stats row (total cards, total limit, spent today) + read-only card overview grid |
-| **My Cards** | 💳 | Generate New Card form + card grid with ☕ Simulate $50 Purchase button per card |
+| **Dashboard** | 🏠 | Stat tiles (cards, total limit, spent, available) + **Primary FinVault Account Card** (derived from userId) + read-only virtual card overview grid |
+| **My Cards** | 💳 | Generate form (Vendor Name + Daily Limit inputs), CSS card chrome grid per card, spend progress bar, freeze/unfreeze button, delete button |
 | **Transactions** | 📊 | Full transaction history table (merchant, amount, status badge, timestamp) with Refresh button |
+
+---
+
+## 🧪 Component Deep Dive: SimulatorComponent
+
+> **Route:** `/simulator` | **Guard:** `authGuard` | **File:** `src/app/simulator/simulator.component.ts`
+
+### Purpose
+A standalone QA tool that lets developers and testers fire arbitrary test transactions directly against `POST /api/transactions` without leaving the application. Validates the backend Adjudication Engine (limit checks, DECLINED / SUCCESS logic) in a real browser environment.
+
+### Component State
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `activeCards` | `VirtualCard[]` | User's cards filtered to `status === 'ACTIVE'` only |
+| `selectedCardId` | `number \| null` | Currently chosen card (bound to dropdown) |
+| `amount` | `number \| null` | Charge amount entered by tester |
+| `merchantName` | `string` | Merchant label for the transaction |
+| `isSubmitting` | `boolean` | In-flight guard — disables button during API call |
+| `alertType` | `'success' \| 'danger' \| ''` | Drives Bootstrap alert colour |
+| `alertMessage` | `string` | Human-readable approval / decline / error text |
+| `lastTransaction` | `TransactionResponse \| null` | Echoes ref ID and timestamp on success |
+
+### Key Methods
+
+| Method | Behaviour |
+|--------|-----------|
+| `fetchCards()` | Calls `getCardsByUserId()` on `ngOnInit`; filters result to `ACTIVE` cards |
+| `cardLabel(card)` | Returns `"VendorName  ••••  XXXX"` for the dropdown option text |
+| `onSubmit()` | Calls `processTransaction()`; sets `alertType`/`alertMessage` on both `next` and `error` (handles `422` DECLINED body) |
+| `dismissAlert()` | Clears the alert from the screen |
+
+### Alert Behaviour
+
+| Backend Response | `alertType` | Displayed Text |
+|:---------------:|:-----------:|----------------|
+| `200 SUCCESS` | `success` | Green — "Transaction APPROVED — \$X.XX charged to \"Merchant\"" |
+| `200 DECLINED` | `danger` | Red — "Transaction DECLINED — ... exceeds the card's daily limit" |
+| `422` (DECLINED body) | `danger` | Red — same DECLINED message extracted from error body |
+| Network / other error | `danger` | Red — backend error message or generic fallback |
+
+### Navigation
+- Dashboard sidebar → **🧪 Simulator** button calls `router.navigate(['/simulator'])` (SPA, no reload).
+- Simulator sidebar → all items use `[routerLink]="['/dashboard']"` (SPA, no reload).
 
 ---
 
@@ -827,6 +931,6 @@ forkJoin(requests).subscribe({
 
 <p align="center">
   <b>🅰️ FinVault Frontend Documentation</b><br>
-  <sub>Sprint 1 — SCRUM-15 (Angular Login & Dashboard UI) | Sprint 2 — SCRUM-16, SCRUM-17 | Hardening — SCRUM-18</sub><br>
+  <sub>Sprint 1 — SCRUM-15 (Angular Login & Dashboard UI) | Sprint 2 — SCRUM-16, SCRUM-17 | Hardening — SCRUM-18 | Card Management — SCRUM-19, SCRUM-20 | QA Tooling — SCRUM-21 (Transaction Simulator)</sub><br>
   <sub>Part of the <a href="ARCHITECTURE.md">FinVault Documentation Suite</a></sub>
 </p>

@@ -299,7 +299,7 @@ FinVault/                                          ← 📁 Monorepo root
 │   │   │   │   │   └── SecurityConfig.java        ← 🔒 BCrypt bean + Security filter chain
 │   │   │   │   ├── controller/
 │   │   │   │   │   ├── AuthController.java        ← 🎯 POST /api/auth/register, POST /api/auth/login
-│   │   │   │   │   ├── VirtualCardController.java ← 🎯 GET  /api/cards/user/{userId}, POST /api/cards
+│   │   │   │   │   ├── VirtualCardController.java ← 🎯 GET /api/cards/user/{userId}, POST /api/cards,\n│   │   │   │   │   │                                     PUT /api/cards/{id}/toggle, DELETE /api/cards/{id}
 │   │   │   │   │   └── TransactionController.java ← 🎯 POST /api/transactions, GET /api/transactions/card/{id}
 │   │   │   │   ├── dto/
 │   │   │   │   │   ├── UserRegistrationDto.java   ← 📨 Inbound: registration request body
@@ -339,13 +339,18 @@ FinVault/                                          ← 📁 Monorepo root
 │   │   │   │   └── auth.guard.ts                  ← 🔒 Blocks /dashboard if not logged in
 │   │   │   ├── services/
 │   │   │   │   ├── auth.service.ts                ← 📡 HTTP calls to /api/auth + sessionStorage session
-│   │   │   │   └── virtual-card.service.ts        ← 📡 HTTP calls to /api/cards + /api/transactions
+│   │   │   │   └── virtual-card.service.ts        ← 📡 GET/POST/PUT/DELETE for cards, POST/GET for transactions
 │   │   │   ├── login/
 │   │   │   │   ├── login.component.ts             ← 📝 Login + Signup tab logic
 │   │   │   │   └── login.component.html           ← 🎨 Bootstrap card with two-tab form
 │   │   │   └── dashboard/
-│   │   │       ├── dashboard.component.ts         ← 📊 Real API calls, 3-tab sidebar, forkJoin transactions
-│   │   │       └── dashboard.component.html       ← 🎨 Sidebar + Dashboard/My Cards/Transactions tabs
+│   │   │       ├── dashboard.component.ts         ← 📊 Real API calls, 3-tab sidebar, toggle/delete cards
+│   │   │       ├── dashboard.component.css        ← 🎨 Dark navy theme, CSS credit card chrome, EMV chip
+│   │   │       └── dashboard.component.html       ← 🎨 Navbar + sidebar + Dashboard/My Cards/Transactions tabs
+│   │   ├── simulator/
+│   │   │   ├── simulator.component.ts        ← 🧪 QA simulator: ACTIVE-card dropdown, processTransaction
+│   │   │   ├── simulator.component.css       ← 🎨 Dark theme, custom alert variants, form card
+│   │   │   └── simulator.component.html      ← 🎨 Bootstrap form, dismissible SUCCESS/DECLINED alerts
 │   │   ├── styles.css                             ← 🎨 Global styles
 │   │   ├── index.html                             ← 📄 SPA shell
 │   │   └── main.ts                                ← 🚀 Angular bootstrap entry point
@@ -404,6 +409,6 @@ FinVault/                                          ← 📁 Monorepo root
 
 <p align="center">
   <b>📐 FinVault Architecture Document</b><br>
-  <sub>Sprint 1 — SCRUM-9 (Backend Init) + SCRUM-10 (Frontend Init) | Sprint 2 — SCRUM-16, SCRUM-17 | Hardening — SCRUM-18</sub><br>
+  <sub>Sprint 1 — SCRUM-9 (Backend Init) + SCRUM-10 (Frontend Init) | Sprint 2 — SCRUM-16, SCRUM-17 | Hardening — SCRUM-18 | Card Management — SCRUM-19, SCRUM-20 | QA Tooling — SCRUM-21</sub><br>
   <sub>Part of the <a href="API_DOCS.md">FinVault Documentation Suite</a></sub>
 </p>

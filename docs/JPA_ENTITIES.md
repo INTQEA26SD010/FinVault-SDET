@@ -7,7 +7,7 @@
 
 # 💾 FinVault — JPA Entities & Repositories
 
-> **Ticket:** SCRUM-13 | **Package:** `com.finvault.backend.entity` / `com.finvault.backend.repository`  
+> **Tickets:** SCRUM-13, SCRUM-20 | **Package:** `com.finvault.backend.entity` / `com.finvault.backend.repository`  
 > **Framework:** Spring Data JPA + Hibernate ORM 7 | **Database:** MySQL 8.0 (`finvault_db`)
 
 ---
@@ -224,10 +224,18 @@ public class User {
 
  BigDecimal dailyLimit;            ────────────►   daily_limit DECIMAL(10,2) DEFAULT 0.00
 
+ @Column(name = "vendor_name")
+ String vendorName;                ────────────►   vendor_name VARCHAR(100) NOT NULL DEFAULT ''
+
  @Enumerated(STRING)
  CardStatus status;                ────────────►   status ENUM('ACTIVE','FROZEN',...) DEFAULT 'ACTIVE'
 
  LocalDateTime createdAt;          ────────────►   created_at DATETIME NOT NULL
+
+ @OneToMany(mappedBy = "virtualCard",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
+ List<Transaction> transactions;   ────────────►   (no column — parent side; cascade-deletes child rows)
 ```
 
 ### Key Design Choices Explained
@@ -237,8 +245,10 @@ public class User {
 | `@ManyToOne(fetch = LAZY)` | Many cards belong to one user; LAZY = don't load user unless accessed | Avoids unnecessary `JOIN` on every card query — major performance win |
 | `@JoinColumn(name = "user_id")` | Declares the FK column name explicitly | Matches the SQL DDL's `user_id` column; self-documenting |
 | `BigDecimal` for `dailyLimit` | Exact decimal arithmetic | `float`/`double` cause rounding errors: `0.1 + 0.2 = 0.30000000000000004` — unacceptable for money |
+| `@Column(name = "vendor_name")` | Maps `vendorName` → `vendor_name` column | Bridging Java camelCase to SQL snake_case convention |
 | `@Enumerated(EnumType.STRING)` | Stores `"ACTIVE"` not `0` in the DB | If you reorder enum values in Java, DB data doesn't break |
 | `CardStatus` inner enum | Mirrors the MySQL ENUM constraint | Type-safe in Java — compiler prevents invalid states |
+| `@OneToMany(cascade = ALL, orphanRemoval = true)` | Parent-side cascade on `transactions` | When a card is deleted, Hibernate automatically deletes all child transaction rows before the card row, avoiding MySQL FK constraint violations |
 | `@PrePersist` | Auto-sets `createdAt` | Consistent timestamps without relying on DB-specific defaults |
 
 ### Why `BigDecimal` Instead of `double` for Money?
@@ -621,6 +631,6 @@ com.finvault.backend
 
 <p align="center">
   <b>💾 FinVault JPA Entities & Repositories Document</b><br>
-  <sub>Sprint 1 — SCRUM-13 (JPA Entities & Repositories) | Sprint 2 — SCRUM-17 (Transaction Entity)</sub><br>
+  <sub>Sprint 1 — SCRUM-13 (JPA Entities & Repositories) | Sprint 2 — SCRUM-17 (Transaction Entity) | Card Management — SCRUM-20 (vendorName, cascade delete, toggleCardStatus)</sub><br>
   <sub>Part of the <a href="ARCHITECTURE.md">FinVault Documentation Suite</a></sub>
 </p>

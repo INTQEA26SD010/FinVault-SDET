@@ -1,6 +1,6 @@
 # FinVault — Frontend Integration Guide
 
-> **Tickets:** SCRUM-15, SCRUM-16, SCRUM-17, SCRUM-18  
+> **Tickets:** SCRUM-15, SCRUM-16, SCRUM-17, SCRUM-18, SCRUM-19, SCRUM-20, SCRUM-21  
 > **Backend base URL:** `http://localhost:8080/api`
 
 ---
@@ -24,14 +24,15 @@ After a successful login or signup, the frontend stores the user session in `ses
 
 ## Route Guard: `AuthGuard`
 
-The `/dashboard` route is protected by `authGuard`:
+The `/dashboard` and `/simulator` routes are protected by `authGuard`:
 
 ```typescript
 // app.routes.ts
 { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] }
+{ path: 'simulator', component: SimulatorComponent, canActivate: [authGuard] }
 ```
 
-`authGuard` calls `authService.isLoggedIn()`. If `false`, redirects to `/login`. This means signup/login flows **must call `authService.setSession()` before navigating to `/dashboard`**.
+`authGuard` calls `authService.isLoggedIn()`. If `false`, redirects to `/login`.
 
 ---
 
@@ -49,7 +50,9 @@ The `/dashboard` route is protected by `authGuard`:
 | Method | HTTP | Endpoint | Purpose |
 |---|---|---|---|
 | `getCardsByUserId(userId)` | `GET` | `/api/cards/user/{userId}` | Fetch all virtual cards for a user |
-| `createCard(userId, dailyLimit)` | `POST` | `/api/cards` | Generate a new virtual card |
+| `createCard(userId, dailyLimit, vendorName)` | `POST` | `/api/cards` | Generate a new virtual card with vendor label |
+| `toggleCard(cardId)` | `PUT` | `/api/cards/{id}/toggle` | Freeze or unfreeze a card; returns updated card |
+| `deleteCard(cardId)` | `DELETE` | `/api/cards/{id}` | Permanently delete a card and all its transactions |
 | `processTransaction(cardId, amount, merchantName)` | `POST` | `/api/transactions` | Simulate a spend; returns `SUCCESS (200)` or `DECLINED (422)` |
 | `getTransactionsByCardId(cardId)` | `GET` | `/api/transactions/card/{cardId}` | Fetch all transactions for a card, newest-first |
 
@@ -67,18 +70,35 @@ getSession() → fetchCards() → getCardsByUserId(session.userId)
 form submit → generateCard() → POST /api/cards → fetchCards()
 ```
 
-### 3. Simulate Purchase
+### 3. Toggle Card (Freeze / Unfreeze)
 ```
-button click (type="button") → simulatePurchase(cardId, event)
-    → event.stopPropagation()          (blocks click bubbling)
-    → processingCardId = cardId        (disables all buttons)
-    → POST /api/transactions
-    → next: fetchCards()               (refresh balances)
-    → error 422: treat as DECLINED     (show error message, still refresh)
-    → processingCardId = null          (re-enable buttons)
+Freeze/Unfreeze button click → toggleCard(cardId)
+    → togglingCardId = cardId          (disables button while in-flight)
+    → PUT /api/cards/{id}/toggle
+    → next: update cards[idx] in-place  (status flips ACTIVE ↔ FROZEN)
+    → cdr.detectChanges()
+    → togglingCardId = null             (re-enable button)
 ```
 
-### 4. Transactions Tab
+### 4. Delete Card
+```
+Delete button click → deleteCard(cardId)
+    → deletingCardId = cardId           (disables button while in-flight)
+    → DELETE /api/cards/{id}
+    → next: filter card out of cards[]  (removes from UI immediately)
+    → cdr.detectChanges()
+    → deletingCardId = null
+```
+
+### 5. Simulate Purchase
+```
+button click → processTransaction(cardId, amount, merchantName)
+    → POST /api/transactions
+    → next: fetchCards()               (refresh balances)
+    → error 422: treat as DECLINED
+```
+
+### 6. Transactions Tab
 ```
 setActiveNav('transactions') → fetchAllTransactions()
     → forkJoin(cards.map(c => getTransactionsByCardId(c.id)))
@@ -106,7 +126,9 @@ export interface VirtualCard {
   cvv: string;
   dailyLimit: number;
   balance: number;
-  userId: number;
+  status: string;        // 'ACTIVE' | 'FROZEN'
+  vendorName: string;    // Vendor or purpose label (e.g. "Amazon")
+  userId?: number;
 }
 
 export interface TransactionResponse {
