@@ -9,6 +9,8 @@ import lombok.ToString;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * JPA Entity mapping to the `virtual_cards` table in finvault_db.
@@ -80,6 +82,15 @@ public class VirtualCard {
      */
     @Column(name = "vendor_name", columnDefinition = "VARCHAR(100) NOT NULL DEFAULT ''")
     private String vendorName = "";
+
+    /**
+     * Transactions against this card.
+     * CascadeType.ALL + orphanRemoval ensures that when a card is deleted,
+     * all its child transaction rows are deleted first, preventing MySQL FK violations.
+     */
+    @ToString.Exclude
+    @OneToMany(mappedBy = "virtualCard", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Transaction> transactions = new ArrayList<>();
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
