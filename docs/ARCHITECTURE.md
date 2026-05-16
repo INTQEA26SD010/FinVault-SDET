@@ -1,6 +1,6 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/Spring%20Boot-4.0-6DB33F?style=for-the-badge&logo=springboot&logoColor=white" />
-  <img src="https://img.shields.io/badge/Angular-21-DD0031?style=for-the-badge&logo=angular&logoColor=white" />
+  <img src="https://img.shields.io/badge/Spring%20Boot-4.0.6-6DB33F?style=for-the-badge&logo=springboot&logoColor=white" />
+  <img src="https://img.shields.io/badge/Angular-21.2-DD0031?style=for-the-badge&logo=angular&logoColor=white" />
   <img src="https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white" />
   <img src="https://img.shields.io/badge/Java-21%20LTS-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white" />
 </p>
@@ -17,77 +17,15 @@
 
 | # | Section | Description |
 |:-:|---------|-------------|
-| 1 | [What is Software Architecture?](#-what-is-software-architecture) | Theory behind architectural design |
+| 1 | [Architecture Pattern — Client-Server](#-architecture-pattern--client-server) | Why FinVault uses a decoupled design |
 | 2 | [Technology Stack](#-technology-stack) | Languages, frameworks, and tools used |
-| 3 | [Architecture Pattern — Client-Server](#-architecture-pattern--client-server) | Why FinVault uses a decoupled design |
-| 4 | [High-Level System Design](#-high-level-system-design) | Visual diagram of the full system |
-| 5 | [The 3-Layer Backend Pattern](#-the-3-layer-backend-pattern) | Controller → Service → Repository explained |
-| 6 | [Request-Response Lifecycle](#-request-response-lifecycle) | Step-by-step flow of every HTTP request |
+| 3 | [High-Level System Design](#-high-level-system-design) | Visual diagram of the full system |
+| 4 | [The 3-Layer Backend Pattern](#-the-3-layer-backend-pattern) | Controller → Service → Repository explained |
+| 5 | [Request-Response Lifecycle](#-request-response-lifecycle) | Step-by-step flow of every HTTP request |
+| 6 | [Frontend Architecture](#-frontend-architecture) | Angular standalone components + routing |
 | 7 | [Directory Structure](#-directory-structure) | Complete file tree of the monorepo |
 | 8 | [Key Architectural Decisions (ADRs)](#-key-architectural-decisions-adrs) | Design choices and their rationale |
 | 9 | [Glossary](#-glossary) | Key terms and definitions |
-
----
-
-## 📖 What is Software Architecture?
-
-Before diving into FinVault's specifics, let's understand the **foundational concepts**:
-
-### 🔹 Software Architecture — The Big Picture
-
-Software architecture is the **high-level structure** of a software system. It defines:
-
-- **How components are organized** (modules, layers, tiers)
-- **How they communicate** (REST APIs, message queues, events)
-- **What design constraints** they follow (security, scalability, maintainability)
-
-> 💡 **Think of it like a building's blueprint** — it shows the rooms (components), doors (interfaces), plumbing (data flow), and wiring (communication protocols) before any construction begins.
-
-### 🔹 Common Architecture Patterns
-
-| Pattern | Description | Example |
-|---------|-------------|---------|
-| **Monolithic** | All code in a single deployable unit | Small internal tools |
-| **Client-Server** ⭐ | Frontend (client) and backend (server) are separate | **FinVault** |
-| **Microservices** | Backend split into many independent services | Netflix, Amazon |
-| **Event-Driven** | Components communicate via events/messages | Real-time systems |
-| **Serverless** | No managed servers; functions run on demand | AWS Lambda apps |
-
-**FinVault uses the Client-Server pattern** — the most common pattern for modern web applications and the industry standard for full-stack development.
-
----
-
-## 🛠️ Technology Stack
-
-### Backend Technologies
-
-| Layer | Technology | Version | Purpose |
-|:-----:|:-----------|:-------:|---------|
-| 🔤 Language | **Java** | 21 (LTS) | Industry-standard, strongly typed, enterprise-grade |
-| 🚀 Framework | **Spring Boot** | 4.0.x | Auto-configuration, embedded server, dependency injection |
-| 💾 ORM | **Spring Data JPA + Hibernate** | 7.x | Object-Relational Mapping — Java objects ↔ SQL tables |
-| 🗄️ Database | **MySQL** | 8.0 | Open-source RDBMS with ACID transactions |
-| 🔒 Security | **Spring Security + JWT** | — | Authentication, authorization, password hashing |
-| 📦 Build Tool | **Maven** (via Maven Wrapper) | 3.x | Dependency management, build lifecycle |
-
-### Frontend Technologies
-
-| Layer | Technology | Version | Purpose |
-|:-----:|:-----------|:-------:|---------|
-| 🅰️ Framework | **Angular** | 21.x | Component-based SPA framework by Google |
-| 📝 Language | **TypeScript** | 5.x | Typed superset of JavaScript |
-| 🎨 UI Library | **Bootstrap** | 5.x | Responsive CSS framework with pre-built components |
-| 📦 Package Manager | **npm** | 11.x | Node.js package manager |
-
-### DevOps & Project Management
-
-| Tool | Purpose |
-|------|---------|
-| 🔀 **Git + GitHub** | Version control (private enterprise repo: `FinVault-SDET`) |
-| ⚡ **GitHub Actions** | CI/CD automation — auto-builds on every push/PR |
-| 🐳 **Docker** | Containerization for consistent deployments |
-| 📋 **Jira (Scrum)** | Sprint planning, backlog management, Smart Commits |
-| 💻 **VS Code** | IDE with Atlassian + GitHub Copilot extensions |
 
 ---
 
@@ -113,103 +51,139 @@ In a **client-server model**, the system is split into two distinct halves:
 | **Runs on** | User's browser | Backend server (or localhost) |
 | **Responsibility** | UI rendering, form validation, routing | Business logic, data persistence, security |
 | **Language** | TypeScript | Java |
-| **Communicates via** | HTTP requests (GET, POST, etc.) | JSON responses |
+| **Communicates via** | HTTP requests (GET, POST, PUT, DELETE) | JSON responses |
 | **Can be deployed** | CDN, Nginx, Vercel | AWS EC2, Docker, Kubernetes |
 
-### Why This Pattern for FinVault?
+### 🎓 Why This Pattern? (Interview Answer)
 
 > ✅ **Independent Development** — Frontend and backend teams can work in parallel  
 > ✅ **Independent Deployment** — Deploy the Angular app on a CDN, the API on a server  
 > ✅ **Independent Scaling** — Scale the backend horizontally without touching the frontend  
 > ✅ **Technology Freedom** — Either side can be rewritten without affecting the other  
+> ✅ **Testability** — Backend can be tested via cURL/Postman without a UI  
+
+---
+
+## 🛠️ Technology Stack
+
+### Backend Technologies
+
+| Layer | Technology | Version | Purpose |
+|:-----:|:-----------|:-------:|---------|
+| 🔤 Language | **Java** | 21 (LTS) | Industry-standard, strongly typed, enterprise-grade |
+| 🚀 Framework | **Spring Boot** | 4.0.6 | Auto-configuration, embedded Tomcat, dependency injection |
+| 💾 ORM | **Spring Data JPA + Hibernate** | 7.x | Object-Relational Mapping — Java objects ↔ SQL tables |
+| 🗄️ Database | **MySQL** | 8.0 | Open-source RDBMS with ACID transactions |
+| 🔒 Security | **Spring Security** | — | BCrypt hashing, CORS, filter chain (JWT-ready) |
+| 📦 Build Tool | **Maven** (via Maven Wrapper) | 3.x | Dependency management, build lifecycle |
+| 🧹 Boilerplate | **Lombok** | — | `@Data`, `@RequiredArgsConstructor`, `@Slf4j` |
+
+### Frontend Technologies
+
+| Layer | Technology | Version | Purpose |
+|:-----:|:-----------|:-------:|---------|
+| 🅰️ Framework | **Angular** | 21.2 | Component-based SPA framework by Google |
+| 📝 Language | **TypeScript** | 5.9 | Typed superset of JavaScript |
+| 🎨 UI Library | **Bootstrap** | 5.3 | Responsive CSS framework with pre-built components |
+| 🔄 Reactive | **RxJS** | 7.8 | Observable-based HTTP and event handling |
+| 📦 Package Manager | **npm** | 11.x | Node.js package manager |
+
+### DevOps & Tooling
+
+| Tool | Purpose |
+|------|---------|
+| 🔀 **Git + GitHub** | Version control (private enterprise repo) |
+| ⚡ **GitHub Actions** | CI/CD — auto-build on every push/PR to `main` |
+| 📋 **Jira (Scrum)** | Sprint planning, backlog management, Smart Commits |
+| 💻 **VS Code** | IDE with Copilot + Atlassian extensions |
 
 ---
 
 ## 🗺️ High-Level System Design
 
-The diagram below shows every major component in FinVault and how they connect:
-
 ```
-╔═══════════════════════════════════════════════════════════════════╗
-║                        🌐 CLIENT TIER                            ║
-║                                                                   ║
-║   ┌───────────────────────────────────────────────────────────┐   ║
-║   │              Angular 21  (localhost:4200)                 │   ║
-║   │                                                           │   ║
-║   │   ┌─────────────┐  ┌────────────┐  ┌──────────────────┐  │   ║
-║   │   │ Components  │  │  Services  │  │  Angular Router  │  │   ║
-║   │   │ (Login,     │  │ (AuthSvc,  │  │  (app.routes.ts) │  │   ║
-║   │   │  Dashboard) │  │  HttpClient│  │                  │  │   ║
-║   │   └─────────────┘  └─────┬──────┘  └──────────────────┘  │   ║
-║   └───────────────────────── │ ───────────────────────────────┘   ║
-║                               │                                    ║
-║                               │  HTTP / JSON (REST API)            ║
-║                               │  Authorization: Bearer <JWT>       ║
-╠═══════════════════════════════╪════════════════════════════════════╣
-║                        🖥️ SERVER TIER                             ║
-║                               │                                    ║
-║   ┌───────────────────────────│────────────────────────────────┐  ║
-║   │          Spring Boot 4  (localhost:8080)                   │  ║
-║   │                           │                                │  ║
-║   │   ┌───────────────┐  ┌───▼────────┐  ┌─────────────────┐  │  ║
-║   │   │  🎯 Controllers│→ │ ⚙️ Services │→ │ 💾 Repositories │  │  ║
-║   │   │  (REST API)    │  │ (Business  │  │ (Spring Data    │  │  ║
-║   │   │  AuthController│  │  Logic)    │  │  JPA)           │  │  ║
-║   │   │  CardController│  │ UserSvc    │  │ UserRepo        │  │  ║
-║   │   └───────────────┘  │ CardSvc    │  │ CardRepo        │  │  ║
-║   │                       └────────────┘  └────────┬────────┘  │  ║
-║   │                                                │ JPA/SQL   │  ║
-║   │   ┌────────────────────────────────────────────│────────┐  │  ║
-║   │   │     🔒 Spring Security (JWT Filter Chain)  │        │  │  ║
-║   │   │     BCryptPasswordEncoder                  │        │  │  ║
-║   │   └────────────────────────────────────────────│────────┘  │  ║
-║   └────────────────────────────────────────────────│───────────┘  ║
-║                                                    │              ║
-║   ┌────────────────────────────────────────────────│───────────┐  ║
-║   │              🗄️ MySQL 8.0  (port 3306)         │           │  ║
-║   │              Database: finvault_db             ▼           │  ║
-║   │   ┌──────────────┐  ┌──────────────────┐  ┌───────────┐  │  ║
-║   │   │    users     │  │  virtual_cards   │  │ (future   │  │  ║
-║   │   │              │  │                  │  │  tables)  │  │  ║
-║   │   └──────┬───────┘  └────────┬─────────┘  └───────────┘  │  ║
-║   │          │    1 : Many       │                             │  ║
-║   │          └───────────────────┘                             │  ║
-║   └────────────────────────────────────────────────────────────┘  ║
-╚═══════════════════════════════════════════════════════════════════╝
+╔═══════════════════════════════════════════════════════════════════════╗
+║                        🌐 CLIENT TIER                                ║
+║                                                                       ║
+║   ┌───────────────────────────────────────────────────────────────┐   ║
+║   │              Angular 21  (localhost:4200)                     │   ║
+║   │                                                               │   ║
+║   │   ┌─────────────┐  ┌────────────┐  ┌──────────────────────┐  │   ║
+║   │   │ Components  │  │  Services  │  │  Angular Router      │  │   ║
+║   │   │ • Login     │  │ • AuthSvc  │  │  app.routes.ts       │  │   ║
+║   │   │ • Dashboard │  │ • CardSvc  │  │  /login              │  │   ║
+║   │   │ • Simulator │  │ • HttpClient│ │  /dashboard (guarded)│  │   ║
+║   │   └─────────────┘  └─────┬──────┘  │  /simulator (guarded)│  │   ║
+║   │                           │         └──────────────────────┘  │   ║
+║   └───────────────────────────│───────────────────────────────────┘   ║
+║                               │                                        ║
+║                               │  HTTP / JSON (REST API)                ║
+║                               │  CORS: localhost:4200 → localhost:8080  ║
+╠═══════════════════════════════╪════════════════════════════════════════╣
+║                        🖥️ SERVER TIER                                 ║
+║                               │                                        ║
+║   ┌───────────────────────────│────────────────────────────────────┐   ║
+║   │          Spring Boot 4  (localhost:8080)                       │   ║
+║   │                           │                                    │   ║
+║   │   ┌───────────────────┐  ┌▼──────────────┐  ┌──────────────┐  │   ║
+║   │   │  🎯 Controllers    │→│ ⚙️ Services     │→│ 💾 Repositories│ │   ║
+║   │   │  AuthController   │  │ UserService   │  │ UserRepo     │  │   ║
+║   │   │  CardController   │  │ CardService   │  │ CardRepo     │  │   ║
+║   │   │  TransactionCtrl  │  │ TransactionSvc│  │ TransRepo    │  │   ║
+║   │   └───────────────────┘  └───────────────┘  └──────┬───────┘  │   ║
+║   │                                                     │ JPA/SQL  │   ║
+║   │   ┌─────────────────────────────────────────────────│───────┐  │   ║
+║   │   │     🔒 Spring Security Filter Chain             │       │  │   ║
+║   │   │     BCryptPasswordEncoder + CORS + permitAll()  │       │  │   ║
+║   │   └─────────────────────────────────────────────────│───────┘  │   ║
+║   └─────────────────────────────────────────────────────│──────────┘   ║
+║                                                         │              ║
+╠═════════════════════════════════════════════════════════╪══════════════╣
+║                        🗄️ DATA TIER                     │              ║
+║                                                         │              ║
+║   ┌─────────────────────────────────────────────────────│──────────┐   ║
+║   │              MySQL 8.0  (port 3306)                 ▼          │   ║
+║   │              Database: finvault_db                              │   ║
+║   │                                                                │   ║
+║   │   ┌──────────┐  1:M  ┌────────────────┐  1:M  ┌────────────┐ │   ║
+║   │   │  users   │──────►│ virtual_cards  │──────►│transactions│ │   ║
+║   │   │          │       │                │       │            │ │   ║
+║   │   └──────────┘       └────────────────┘       └────────────┘ │   ║
+║   │                                                                │   ║
+║   └────────────────────────────────────────────────────────────────┘   ║
+╚═══════════════════════════════════════════════════════════════════════╝
 ```
 
 ---
 
 ## 🧱 The 3-Layer Backend Pattern
 
-FinVault's backend follows a strict **3-Layer Architecture** — a well-established design pattern in enterprise Java development:
-
-### What are the 3 Layers?
+FinVault's backend follows a strict **3-Layer Architecture** — the most common pattern in enterprise Java:
 
 ```
-        ┌──────────────────────────────────────────────┐
-        │              📨 CONTROLLER LAYER              │
-        │     Receives HTTP requests, returns responses │
-        │   AuthController, VirtualCardController       │
-        │   TransactionController                       │
-        └──────────────────┬─────────────────────────┘
-                            │  calls ↓
-        ┌──────────────────▼─────────────────────────┐
-        │              ⚙️ SERVICE LAYER                 │
-        │     Contains ALL business logic               │
-        │     UserService, VirtualCardService            │
-        │     TransactionService (+ daily-limit check)  │
-        └──────────────────┬─────────────────────────┘
-                            │  calls ↓
-        ┌──────────────────▼─────────────────────────┐
-        │              💾 REPOSITORY LAYER              │
-        │     Talks to the database via JPA             │
-        │     UserRepository, VirtualCardRepository     │
-        │     TransactionRepository                     │
-        └──────────────────────────────────────────────┘
+        ┌──────────────────────────────────────────────────────┐
+        │                  📨 CONTROLLER LAYER                  │
+        │    Receives HTTP requests, validates, returns responses│
+        │    AuthController · VirtualCardController              │
+        │    TransactionController                              │
+        └──────────────────────────┬───────────────────────────┘
+                                   │  calls ↓
+        ┌──────────────────────────▼───────────────────────────┐
+        │                  ⚙️ SERVICE LAYER                      │
+        │    Contains ALL business logic + @Transactional       │
+        │    UserService · VirtualCardService                    │
+        │    TransactionService (daily-limit check)             │
+        └──────────────────────────┬───────────────────────────┘
+                                   │  calls ↓
+        ┌──────────────────────────▼───────────────────────────┐
+        │                  💾 REPOSITORY LAYER                   │
+        │    Talks to MySQL via JPA — zero SQL required         │
+        │    UserRepository · VirtualCardRepository             │
+        │    TransactionRepository                              │
+        └──────────────────────────────────────────────────────┘
 ```
 
-### Why 3 Layers?
+### 🎓 Why 3 Layers? (Interview Answer)
 
 | Principle | Without Layers | With Layers |
 |-----------|:--------------:|:-----------:|
@@ -229,164 +203,170 @@ FinVault's backend follows a strict **3-Layer Architecture** — a well-establis
 
 ## 🔄 Request-Response Lifecycle
 
-Here is the **step-by-step journey** of every HTTP request through FinVault:
+### Example: User Registration Flow
 
 ```
  👤 User                   🌐 Angular               🖥️ Spring Boot           🗄️ MySQL
   │                          │                          │                       │
   │  1. Fills form           │                          │                       │
-  │  & clicks submit         │                          │                       │
+  │  & clicks Register       │                          │                       │
   │─────────────────────────►│                          │                       │
-  │                          │  2. AuthService sends    │                       │
+  │                          │  2. AuthService.register()│                      │
   │                          │  POST /api/auth/register │                       │
   │                          │─────────────────────────►│                       │
-  │                          │                          │  3. SecurityFilter     │
-  │                          │                          │  checks JWT token     │
-  │                          │                          │  (permitAll for now)  │
+  │                          │                          │  3. SecurityFilter    │
+  │                          │                          │  permitAll() — passes │
   │                          │                          │                       │
   │                          │                          │  4. AuthController    │
-  │                          │                          │  receives request     │
-  │                          │                          │  & calls UserService  │
+  │                          │                          │  @PostMapping         │
+  │                          │                          │  calls UserService    │
   │                          │                          │                       │
   │                          │                          │  5. UserService       │
-  │                          │                          │  hashes password      │
-  │                          │                          │  with BCrypt          │
+  │                          │                          │  existsByEmail check  │
+  │                          │                          │  BCrypt.encode()      │
   │                          │                          │                       │
   │                          │                          │  6. UserRepository    │
   │                          │                          │  .save(user)          │
   │                          │                          │──────────────────────►│
-  │                          │                          │                       │
   │                          │                          │  7. INSERT INTO users │
   │                          │                          │◄──────────────────────│
   │                          │                          │                       │
   │                          │  8. 201 Created          │                       │
   │                          │  { message, userId }     │                       │
   │                          │◄─────────────────────────│                       │
-  │                          │                          │                       │
-  │  9. Shows success alert  │                          │                       │
-  │  & redirects to /dashboard                          │                       │
+  │  9. setSession() +       │                          │                       │
+  │  router → /dashboard     │                          │                       │
   │◄─────────────────────────│                          │                       │
-  │                          │                          │                       │
 ```
 
-### The 9 Steps Explained
+### Example: Transaction Approval Flow
 
-| Step | Component | What Happens |
-|:----:|-----------|--------------|
-| **1** | 👤 Browser | User fills in username, email, password and clicks "Register" |
-| **2** | 🅰️ Angular `AuthService` | `HttpClient.post()` sends JSON payload to `http://localhost:8080/api/auth/register` |
-| **3** | 🔒 Spring Security Filter | Intercepts the request; currently `permitAll()` — JWT will be enforced later |
-| **4** | 🎯 `AuthController` | `@PostMapping("/register")` method receives the `UserRegistrationDto` from `@RequestBody` |
-| **5** | ⚙️ `UserService` | Checks email uniqueness, hashes password with `BCryptPasswordEncoder.encode()` |
-| **6** | 💾 `UserRepository` | `save(user)` — Spring Data JPA translates to a Hibernate `persist()` call |
-| **7** | 🗄️ MySQL | Hibernate generates: `INSERT INTO users (username, email, password_hash, created_at) VALUES (?, ?, ?, ?)` |
-| **8** | 🎯 `AuthController` | Returns `ResponseEntity.status(201).body({ message, userId })` — serialized to JSON by Jackson |
-| **9** | 🅰️ Angular `LoginComponent` | Shows success alert, then `router.navigate(['/dashboard'])` after 1.5s delay |
+```
+ Dashboard               VirtualCardService         TransactionService        MySQL
+    │                          │                          │                    │
+    │  simulatePurchase()      │                          │                    │
+    │  POST /api/transactions  │                          │                    │
+    │─────────────────────────────────────────────────────►                    │
+    │                          │                          │  findById(cardId)  │
+    │                          │                          │───────────────────►│
+    │                          │                          │◄───────────────────│
+    │                          │                          │                    │
+    │                          │  if (balance + amount <= dailyLimit)          │
+    │                          │         → status = SUCCESS                    │
+    │                          │         → card.balance += amount              │
+    │                          │  else                                         │
+    │                          │         → status = DECLINED                   │
+    │                          │                          │                    │
+    │                          │                          │  save(transaction) │
+    │                          │                          │───────────────────►│
+    │                          │                          │◄───────────────────│
+    │                          │                          │                    │
+    │  200 OK (SUCCESS)        │                          │                    │
+    │  or 422 (DECLINED)       │                          │                    │
+    │◄─────────────────────────────────────────────────────                    │
+```
+
+---
+
+## 🅰️ Frontend Architecture
+
+### Standalone Components (Angular 17+ Pattern)
+
+FinVault uses **standalone components** — the modern Angular pattern that eliminates NgModules:
+
+```typescript
+@Component({
+  selector: 'app-dashboard',
+  standalone: true,                      // ← Self-contained, no NgModule required
+  imports: [CommonModule, FormsModule],  // ← Declares its own dependencies
+  templateUrl: './dashboard.component.html'
+})
+export class DashboardComponent { }
+```
+
+### 🎓 Why Standalone? (Interview Answer)
+
+> Each component declares exactly what it needs — no bloated `AppModule` with 200 imports. This pattern enables **tree-shaking** (unused components are excluded from the build), makes dependencies **self-documenting**, and aligns with Angular's future direction.
+
+### App Routes
+
+```typescript
+export const routes: Routes = [
+  { path: '',           redirectTo: 'login', pathMatch: 'full' },
+  { path: 'login',      component: LoginComponent },
+  { path: 'dashboard',  component: DashboardComponent,  canActivate: [authGuard] },
+  { path: 'simulator',  component: SimulatorComponent,  canActivate: [authGuard] },
+  { path: '**',         redirectTo: 'login' }
+];
+```
+
+### Session Management
+
+```
+Login → tap() → sessionStorage.setItem('finvault_user', JSON.stringify({userId, username, email}))
+Guard → sessionStorage.getItem('finvault_user') → null? redirect to /login : allow
+Logout → sessionStorage.removeItem() + router.navigate(['/login'])
+```
 
 ---
 
 ## 📂 Directory Structure
 
 ```
-FinVault/                                          ← 📁 Monorepo root
+FinVault/
 │
 ├── 📂 backend/                                    ← Spring Boot application
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/com/finvault/backend/
-│   │   │   │   ├── BackendApplication.java        ← 🚀 Main entry point (@SpringBootApplication)
-│   │   │   │   ├── config/
-│   │   │   │   │   └── SecurityConfig.java        ← 🔒 BCrypt bean + Security filter chain
-│   │   │   │   ├── controller/
-│   │   │   │   │   ├── AuthController.java        ← 🎯 POST /api/auth/register, POST /api/auth/login
-│   │   │   │   │   ├── VirtualCardController.java ← 🎯 GET /api/cards/user/{userId}, POST /api/cards,\n│   │   │   │   │   │                                     PUT /api/cards/{id}/toggle, DELETE /api/cards/{id}
-│   │   │   │   │   └── TransactionController.java ← 🎯 POST /api/transactions, GET /api/transactions/card/{id}
-│   │   │   │   ├── dto/
-│   │   │   │   │   ├── UserRegistrationDto.java   ← 📨 Inbound: registration request body
-│   │   │   │   │   ├── LoginRequestDto.java       ← 📨 Inbound: { email, password }
-│   │   │   │   │   ├── LoginResponseDto.java      ← 📤 Outbound: { userId, username, email, message }
-│   │   │   │   │   ├── VirtualCardResponseDto.java← 📤 Outbound: card data (cvv + balance included)
-│   │   │   │   │   ├── TransactionRequestDto.java ← 📨 Inbound: { cardId, amount, merchantName }
-│   │   │   │   │   └── TransactionResponseDto.java← 📤 Outbound: { id, cardId, amount, timestamp, status }
-│   │   │   │   ├── entity/
-│   │   │   │   │   ├── User.java                  ← 💾 @Entity → users table
-│   │   │   │   │   ├── VirtualCard.java           ← 💾 @Entity → virtual_cards table
-│   │   │   │   │   └── Transaction.java           ← 💾 @Entity → transactions table
-│   │   │   │   ├── repository/
-│   │   │   │   │   ├── UserRepository.java        ← 🔍 JpaRepository<User, Long>
-│   │   │   │   │   ├── VirtualCardRepository.java ← 🔍 JpaRepository<VirtualCard, Long>
-│   │   │   │   │   └── TransactionRepository.java ← 🔍 JpaRepository<Transaction, Long> + findByVirtualCardId...
-│   │   │   │   └── service/
-│   │   │   │       ├── UserService.java           ← ⚙️ Registration + login + BCrypt hashing
-│   │   │   │       ├── VirtualCardService.java    ← ⚙️ Card creation + fetching + DTO mapping
-│   │   │   │       └── TransactionService.java    ← ⚙️ Transaction processing + daily-limit check
-│   │   │   └── resources/
-│   │   │       └── application.properties         ← ⚙️ MySQL, JPA, server config
-│   │   └── test/
-│   │       └── java/com/finvault/backend/
-│   │           └── BackendApplicationTests.java   ← 🧪 Spring Boot context test
-│   ├── pom.xml                                    ← 📦 Maven dependencies & build config
-│   └── mvnw / mvnw.cmd                           ← 🔧 Maven wrapper scripts
+│   ├── src/main/java/com/finvault/backend/
+│   │   ├── BackendApplication.java                ← @SpringBootApplication entry point
+│   │   ├── config/SecurityConfig.java             ← BCrypt + CORS + SecurityFilterChain
+│   │   ├── controller/
+│   │   │   ├── AuthController.java                ← /api/auth/register, /api/auth/login
+│   │   │   ├── VirtualCardController.java         ← /api/cards (CRUD + toggle)
+│   │   │   └── TransactionController.java         ← /api/transactions (simulate + history)
+│   │   ├── dto/                                   ← 7 Data Transfer Objects
+│   │   ├── entity/                                ← 3 JPA entities (User, VirtualCard, Transaction)
+│   │   ├── repository/                            ← 3 Spring Data JPA interfaces
+│   │   └── service/                               ← 3 business logic services
+│   └── src/main/resources/application.properties  ← MySQL + JPA + logging config
 │
-├── 📂 frontend/                                   ← Angular application
-│   ├── src/
-│   │   ├── app/
-│   │   │   ├── app.ts                             ← 🅰️ Root component (shell)
-│   │   │   ├── app.html                           ← 🅰️ <router-outlet /> only
-│   │   │   ├── app.routes.ts                      ← 🛤️ Application routing table (with AuthGuard)
-│   │   │   ├── app.config.ts                      ← ⚙️ App providers (Router, HttpClient)
-│   │   │   ├── guards/
-│   │   │   │   └── auth.guard.ts                  ← 🔒 Blocks /dashboard if not logged in
-│   │   │   ├── services/
-│   │   │   │   ├── auth.service.ts                ← 📡 HTTP calls to /api/auth + sessionStorage session
-│   │   │   │   └── virtual-card.service.ts        ← 📡 GET/POST/PUT/DELETE for cards, POST/GET for transactions
-│   │   │   ├── login/
-│   │   │   │   ├── login.component.ts             ← 📝 Login + Signup tab logic
-│   │   │   │   └── login.component.html           ← 🎨 Bootstrap card with two-tab form
-│   │   │   └── dashboard/
-│   │   │       ├── dashboard.component.ts         ← 📊 Real API calls, 3-tab sidebar, toggle/delete cards
-│   │   │       ├── dashboard.component.css        ← 🎨 Dark navy theme, CSS credit card chrome, EMV chip
-│   │   │       └── dashboard.component.html       ← 🎨 Navbar + sidebar + Dashboard/My Cards/Transactions tabs
-│   │   ├── simulator/
-│   │   │   ├── simulator.component.ts        ← 🧪 QA simulator: ACTIVE-card dropdown, processTransaction
-│   │   │   ├── simulator.component.css       ← 🎨 Dark theme, custom alert variants, form card
-│   │   │   └── simulator.component.html      ← 🎨 Bootstrap form, dismissible SUCCESS/DECLINED alerts
-│   │   ├── styles.css                             ← 🎨 Global styles
-│   │   ├── index.html                             ← 📄 SPA shell
-│   │   └── main.ts                                ← 🚀 Angular bootstrap entry point
-│   ├── angular.json                               ← ⚙️ CLI config (Bootstrap registered here)
-│   ├── package.json                               ← 📦 npm dependencies
-│   └── tsconfig.json                              ← 📝 TypeScript compiler config
+├── 📂 frontend/src/app/                           ← Angular application
+│   ├── app.ts / app.html / app.routes.ts          ← Root shell + routing
+│   ├── app.config.ts                              ← provideRouter + provideHttpClient(withFetch())
+│   ├── guards/auth.guard.ts                       ← CanActivateFn route protection
+│   ├── services/                                  ← AuthService + VirtualCardService
+│   ├── login/                                     ← Login + Signup component
+│   ├── dashboard/                                 ← 3-tab card dashboard
+│   └── simulator/                                 ← QA transaction testing tool
 │
-├── 📂 docs/                                       ← Documentation
-│   ├── ARCHITECTURE.md                            ← 🏗️ This file
-│   ├── API_DOCS.md                                ← 📡 REST API documentation
-│   ├── DB_SCHEMA.md                               ← 🗄️ Database schema design
-│   ├── JPA_ENTITIES.md                            ← 💾 Entity & Repository docs
-│   ├── FRONTEND_DOCS.md                           ← 🅰️ Angular frontend docs
-│   └── CI_PIPELINE.md                             ← ⚡ GitHub Actions pipeline docs
-│
-├── .github/                                       ← ⚡ GitHub Actions CI/CD workflows
-├── .gitignore
-└── README.md                                      ← 📖 Project overview
+└── 📂 docs/                                       ← 7 documentation files
 ```
 
 ---
 
 ## 🏛️ Key Architectural Decisions (ADRs)
 
-> **ADR** = Architecture Decision Record — a lightweight method for documenting important design choices.
+> **ADR** = Architecture Decision Record — documenting the **"why"** behind every choice.
 
-| # | Decision | Choice Made | Rationale |
-|:-:|----------|-------------|-----------|
-| 1 | **Decoupled architecture** | Separate Angular + Spring Boot apps | Independent deployability; frontend can be hosted on a CDN separately from the API server |
-| 2 | **Authentication method** | JWT (JSON Web Tokens) | Stateless, scalable — no server-side session storage needed; pairs well with horizontal scaling |
-| 3 | **ORM vs Raw SQL** | Spring Data JPA (Repository pattern) | Eliminates boilerplate SQL; schema evolves with `ddl-auto=update` during development |
-| 4 | **CSS framework** | Bootstrap 5 (global via `angular.json`) | Instant access to grid system and utilities across all components without per-file imports |
-| 5 | **Build tool** | Maven Wrapper (`mvnw` / `mvnw.cmd`) | Zero-dependency build — any developer can run `./mvnw spring-boot:run` without installing Maven |
-| 6 | **Repository strategy** | Monorepo (`backend/` + `frontend/`) | Simplified Jira Smart Commit traceability; single PR covers full-stack changes |
-| 7 | **Password storage** | BCrypt (strength 10) | Industry-standard adaptive hashing — plaintext passwords are NEVER stored |
-| 8 | **API data format** | DTOs (Data Transfer Objects) | Prevents exposing JPA entity internals (passwords, CVV) in API responses |
+| # | Decision | Choice | Rationale (Interview-Ready) |
+|:-:|----------|--------|----------------------------|
+| 1 | **Architecture style** | Decoupled Client-Server | Independent deployability; Angular on CDN, API on a server; frontend can be rewritten without touching backend |
+| 2 | **Password storage** | BCrypt (strength 10) | Adaptive work-factor hashing; brute-force resistant; 60-char fixed output; industry standard |
+| 3 | **ORM strategy** | Spring Data JPA + Hibernate | Zero-boilerplate CRUD; derived query methods; schema auto-migration via `ddl-auto=update` |
+| 4 | **API data contract** | DTOs (not raw entities) | Prevents over-posting, hides sensitive fields (passwordHash, internal FKs), decouples API evolution from DB schema |
+| 5 | **HTTP method for toggle** | `PUT /cards/{id}/toggle` | PUT is idempotent for state change; body-less because the target state is inferred (flip ACTIVE↔FROZEN) |
+| 6 | **HTTP method for delete** | `DELETE /cards/{id}` | REST semantic — DELETE removes a resource permanently; returns 204 No Content |
+| 7 | **Money representation** | `BigDecimal` | Prevents IEEE 754 floating-point errors (0.1+0.2≠0.3); exact arithmetic for financial calculations |
+| 8 | **Enum persistence** | `@Enumerated(EnumType.STRING)` | Stores "ACTIVE" not 0 — safe for future enum reordering; human-readable in raw SQL queries |
+| 9 | **Cascading deletes** | `CascadeType.ALL` + `orphanRemoval` | Deleting a user cascades to cards; deleting a card cascades to transactions — no orphaned rows |
+| 10 | **Angular HTTP provider** | `provideHttpClient(withFetch())` | Uses native Fetch API; lighter than XHR; requires explicit `ChangeDetectorRef.detectChanges()` |
+| 11 | **Route protection** | `CanActivateFn` (functional guard) | Simpler than class-based guards; uses `inject()` for DI; Angular 17+ recommended pattern |
+| 12 | **Session storage** | `sessionStorage` | Simpler than JWT for training scope; auto-clears on tab close; sufficient for single-tab prototype |
+| 13 | **CSS framework** | Bootstrap 5 via `angular.json` styles array | Global availability; no per-component imports; proven responsive grid system |
+| 14 | **Card vendor field** | `vendorName` (VARCHAR 100, DEFAULT '') | Human-readable label for budgeting context; backward-compatible with existing rows via DEFAULT |
+| 15 | **Build tool** | Maven Wrapper (`mvnw`) | Zero-install builds — CI and developers use the same Maven version without manual installation |
+| 16 | **Repository strategy** | Monorepo | Single PR covers full-stack changes; simplified Jira Smart Commit traceability |
+| 17 | **CORS configuration** | Explicit allowedOrigins: `localhost:4200` | Security best practice — only the known frontend origin can make cross-origin requests |
+| 18 | **CSRF disabled** | `csrf.disable()` | API is stateless (no session cookies); Angular sends JSON via HttpClient, not HTML form posts |
 
 ---
 
@@ -394,21 +374,22 @@ FinVault/                                          ← 📁 Monorepo root
 
 | Term | Definition |
 |------|-----------|
-| **SPA** | Single Page Application — the browser loads one HTML page, and Angular handles navigation dynamically via JavaScript |
-| **REST** | Representational State Transfer — an architectural style for building web APIs using standard HTTP methods |
-| **JWT** | JSON Web Token — a compact, self-contained token used for stateless authentication between client and server |
-| **JPA** | Java Persistence API — a specification for mapping Java objects to relational database tables |
-| **ORM** | Object-Relational Mapping — the technique of converting data between a relational DB and object-oriented code |
-| **DTO** | Data Transfer Object — a plain Java class used to transfer data between layers without exposing entity internals |
-| **BCrypt** | A password hashing algorithm that incorporates a salt and a configurable work factor to resist brute-force attacks |
-| **CSRF** | Cross-Site Request Forgery — an attack where a malicious site tricks a user's browser into making unwanted requests |
-| **ADR** | Architecture Decision Record — a concise document capturing a significant architectural decision and its rationale |
-| **Monorepo** | A single Git repository that contains multiple distinct projects (e.g., frontend and backend) |
+| **SPA** | Single Page Application — loads one HTML page, Angular handles navigation dynamically |
+| **REST** | Representational State Transfer — API style using standard HTTP methods |
+| **DTO** | Data Transfer Object — plain class for transferring data between layers |
+| **BCrypt** | Adaptive password hashing algorithm with configurable work factor |
+| **CORS** | Cross-Origin Resource Sharing — HTTP headers that permit cross-domain requests |
+| **CSRF** | Cross-Site Request Forgery — attack vector disabled because FinVault is stateless |
+| **JPA** | Java Persistence API — specification for ORM in Java |
+| **ORM** | Object-Relational Mapping — bridges Java objects and SQL tables |
+| **ADR** | Architecture Decision Record — documents the "why" behind a design choice |
+| **Monorepo** | Single Git repository containing multiple projects (frontend + backend) |
+| **Standalone Component** | Angular component that declares its own imports without NgModules |
+| **CanActivateFn** | Angular functional route guard (replaces class-based `CanActivate`) |
 
 ---
 
 <p align="center">
   <b>📐 FinVault Architecture Document</b><br>
-  <sub>Sprint 1 — SCRUM-9 (Backend Init) + SCRUM-10 (Frontend Init) | Sprint 2 — SCRUM-16, SCRUM-17 | Hardening — SCRUM-18 | Card Management — SCRUM-19, SCRUM-20 | QA Tooling — SCRUM-21</sub><br>
-  <sub>Part of the <a href="API_DOCS.md">FinVault Documentation Suite</a></sub>
+  <sub>Part of the <a href="../README.md">FinVault Documentation Suite</a></sub>
 </p>
