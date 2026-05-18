@@ -1,130 +1,148 @@
-<div class="min-vh-100 d-flex align-items-center justify-content-center bg-dark">
-  <div class="card shadow-lg border-0" style="width: 100%; max-width: 440px;">
+<div class="auth-shell">
 
-    <!-- Header -->
-    <div class="card-header bg-primary text-white text-center py-4">
-      <h2 class="mb-1 fw-bold"><span class="me-2">💳</span>FinVault</h2>
-      <small class="text-white-50">Smart-Card Budgeting System</small>
+  <!-- Left panel — branding (hidden on mobile) -->
+  <div class="auth-left d-none d-lg-flex">
+    <div class="auth-left-inner">
+      <div class="auth-logo mb-4">
+        <span class="auth-logo-fin">Fin</span><span class="auth-logo-vault">Vault</span>
+      </div>
+      <h2 class="auth-tagline">Your financial<br>firewall.</h2>
+      <p class="auth-sub">
+        Issue virtual smart-cards, set spending limits per vendor,
+        and monitor every transaction in real time.
+      </p>
+      <div class="auth-feature-list">
+        <div class="auth-feature"><span class="auth-feature-dot"></span>Instant virtual card generation</div>
+        <div class="auth-feature"><span class="auth-feature-dot"></span>Per-card daily spending limits</div>
+        <div class="auth-feature"><span class="auth-feature-dot"></span>Freeze &amp; unfreeze cards anytime</div>
+        <div class="auth-feature"><span class="auth-feature-dot"></span>Full transaction audit trail</div>
+      </div>
+    </div>
+    <!-- Decorative card mock -->
+    <div class="auth-card-mock">
+      <div class="mock-card-inner">
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="mock-brand">FinVault</span>
+          <svg width="20" height="20" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="19" r="1.5" fill="rgba(255,255,255,0.8)"/><path d="M6.5 15a6.36 6.36 0 0 1 9 0" stroke="rgba(255,255,255,0.7)" stroke-width="1.4" stroke-linecap="round" fill="none"/><path d="M3 11.5a11.18 11.18 0 0 1 16 0" stroke="rgba(255,255,255,0.36)" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg>
+        </div>
+        <div class="mock-chip"></div>
+        <div class="mock-number">4000 •••• •••• 7291</div>
+        <div class="d-flex justify-content-between">
+          <div><div class="mock-label">CARD HOLDER</div><div class="mock-val">YOUR NAME</div></div>
+          <div><div class="mock-label">VALID THRU</div><div class="mock-val">05/30</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right panel — form -->
+  <div class="auth-right d-flex flex-column align-items-center justify-content-center">
+
+    <!-- Mobile logo -->
+    <div class="d-lg-none mb-5">
+      <div class="auth-logo"><span class="auth-logo-fin">Fin</span><span class="auth-logo-vault">Vault</span></div>
+      <p class="auth-sub-sm">Smart-Card Budgeting System</p>
     </div>
 
-    <!-- Tab Switcher -->
-    <div class="d-flex border-bottom">
-      <button
-        class="btn flex-fill rounded-0 py-2 fw-semibold"
-        [class.btn-white]="activeTab === 'login'"
-        [class.btn-light]="activeTab === 'login'"
-        [class.btn-outline-secondary]="activeTab !== 'login'"
-        [class.border-0]="activeTab !== 'login'"
-        (click)="switchTab('login')">
-        Sign In
-      </button>
-      <button
-        class="btn flex-fill rounded-0 py-2 fw-semibold"
-        [class.btn-white]="activeTab === 'signup'"
-        [class.btn-light]="activeTab === 'signup'"
-        [class.btn-outline-secondary]="activeTab !== 'signup'"
-        [class.border-0]="activeTab !== 'signup'"
-        (click)="switchTab('signup')">
-        Create Account
-      </button>
-    </div>
+    <div class="auth-form-box">
 
-    <div class="card-body p-4">
+      <!-- Tab switcher -->
+      <div class="auth-tabs mb-5">
+        <button type="button" class="auth-tab" [class.active]="activeTab==='login'" (click)="switchTab('login')">
+          Sign In
+        </button>
+        <button type="button" class="auth-tab" [class.active]="activeTab==='signup'" (click)="switchTab('signup')">
+          Create Account
+        </button>
+        <div class="auth-tab-indicator" [style.left]="activeTab==='login' ? '4px' : 'calc(50% + 2px'"></div>
+      </div>
 
+      <!-- Alerts -->
       @if (successMessage) {
-        <div class="alert alert-success py-2" role="alert">{{ successMessage }}</div>
+        <div class="auth-alert auth-alert-success mb-4">{{ successMessage }}</div>
       }
       @if (errorMessage) {
-        <div class="alert alert-danger py-2" role="alert">{{ errorMessage }}</div>
+        <div class="auth-alert auth-alert-danger mb-4">{{ errorMessage }}</div>
       }
 
-      <!-- ============ LOGIN FORM ============ -->
+      <!-- ── SIGN IN ── -->
       @if (activeTab === 'login') {
-        <h5 class="card-title mb-4 text-center text-muted">Sign in to your account</h5>
-        <form (ngSubmit)="onLogin()" #loginForm="ngForm">
-          <div class="mb-3">
-            <label for="loginEmail" class="form-label fw-semibold">Email address</label>
-            <input type="email" id="loginEmail" name="loginEmail" class="form-control"
-                   placeholder="john&#64;example.com"
+        <form (ngSubmit)="onLogin()" #loginForm="ngForm" novalidate>
+          <div class="auth-field mb-4">
+            <label for="loginEmail" class="auth-label">Email address</label>
+            <input type="email" id="loginEmail" name="loginEmail" class="auth-input"
+                   placeholder="you@example.com"
                    [(ngModel)]="loginData.email" required email #loginEmailF="ngModel" />
             @if (loginEmailF.invalid && loginEmailF.touched) {
-              <div class="text-danger small mt-1">Please enter a valid email.</div>
+              <div class="auth-field-error">Please enter a valid email.</div>
             }
           </div>
-          <div class="mb-4">
-            <label for="loginPassword" class="form-label fw-semibold">Password</label>
-            <input type="password" id="loginPassword" name="loginPassword" class="form-control"
-                   placeholder="Your password"
+          <div class="auth-field mb-5">
+            <label for="loginPassword" class="auth-label">Password</label>
+            <input type="password" id="loginPassword" name="loginPassword" class="auth-input"
+                   placeholder="••••••••"
                    [(ngModel)]="loginData.password" required minlength="6" #loginPwF="ngModel" />
             @if (loginPwF.invalid && loginPwF.touched) {
-              <div class="text-danger small mt-1">Password must be at least 6 characters.</div>
+              <div class="auth-field-error">Password must be at least 6 characters.</div>
             }
           </div>
-          <button type="submit" class="btn btn-primary w-100 py-2 fw-bold"
-                  [disabled]="loginForm.invalid || isLoading">
+          <button type="submit" class="auth-btn w-100" [disabled]="loginForm.invalid || isLoading">
             @if (isLoading) {
-              <span class="spinner-border spinner-border-sm me-2" role="status"></span>Signing in...
-            } @else {
-              Sign In
-            }
+              <span class="spinner-border spinner-border-sm me-2" role="status"></span>Signing in&hellip;
+            } @else { Sign In }
           </button>
         </form>
-        <p class="text-center text-muted small mt-3 mb-0">
-          Don't have an account?
-          <a href="javascript:void(0)" class="text-primary fw-semibold" (click)="switchTab('signup')">Create one</a>
+        <p class="auth-switch-hint mt-4">
+          No account?&nbsp;
+          <button type="button" class="auth-switch-link" (click)="switchTab('signup')">Create one</button>
         </p>
       }
 
-      <!-- ============ SIGNUP FORM ============ -->
+      <!-- ── CREATE ACCOUNT ── -->
       @if (activeTab === 'signup') {
-        <h5 class="card-title mb-4 text-center text-muted">Create your account</h5>
-        <form (ngSubmit)="onSignup()" #signupForm="ngForm">
-          <div class="mb-3">
-            <label for="signupUsername" class="form-label fw-semibold">Username</label>
-            <input type="text" id="signupUsername" name="signupUsername" class="form-control"
+        <form (ngSubmit)="onSignup()" #signupForm="ngForm" novalidate>
+          <div class="auth-field mb-4">
+            <label for="signupUsername" class="auth-label">Username</label>
+            <input type="text" id="signupUsername" name="signupUsername" class="auth-input"
                    placeholder="e.g. johndoe"
                    [(ngModel)]="signupData.username" required minlength="3" #supUser="ngModel" />
             @if (supUser.invalid && supUser.touched) {
-              <div class="text-danger small mt-1">Username must be at least 3 characters.</div>
+              <div class="auth-field-error">Username must be at least 3 characters.</div>
             }
           </div>
-          <div class="mb-3">
-            <label for="signupEmail" class="form-label fw-semibold">Email address</label>
-            <input type="email" id="signupEmail" name="signupEmail" class="form-control"
-                   placeholder="john&#64;example.com"
+          <div class="auth-field mb-4">
+            <label for="signupEmail" class="auth-label">Email address</label>
+            <input type="email" id="signupEmail" name="signupEmail" class="auth-input"
+                   placeholder="you@example.com"
                    [(ngModel)]="signupData.email" required email #supEmail="ngModel" />
             @if (supEmail.invalid && supEmail.touched) {
-              <div class="text-danger small mt-1">Please enter a valid email.</div>
+              <div class="auth-field-error">Please enter a valid email.</div>
             }
           </div>
-          <div class="mb-4">
-            <label for="signupPassword" class="form-label fw-semibold">Password</label>
-            <input type="password" id="signupPassword" name="signupPassword" class="form-control"
+          <div class="auth-field mb-5">
+            <label for="signupPassword" class="auth-label">Password</label>
+            <input type="password" id="signupPassword" name="signupPassword" class="auth-input"
                    placeholder="Min. 6 characters"
                    [(ngModel)]="signupData.password" required minlength="6" #supPw="ngModel" />
             @if (supPw.invalid && supPw.touched) {
-              <div class="text-danger small mt-1">Password must be at least 6 characters.</div>
+              <div class="auth-field-error">Password must be at least 6 characters.</div>
             }
           </div>
-          <button type="submit" class="btn btn-primary w-100 py-2 fw-bold"
-                  [disabled]="signupForm.invalid || isLoading">
+          <button type="submit" class="auth-btn w-100" [disabled]="signupForm.invalid || isLoading">
             @if (isLoading) {
-              <span class="spinner-border spinner-border-sm me-2" role="status"></span>Creating account...
-            } @else {
-              Create Account
-            }
+              <span class="spinner-border spinner-border-sm me-2" role="status"></span>Creating account&hellip;
+            } @else { Create Account }
           </button>
         </form>
-        <p class="text-center text-muted small mt-3 mb-0">
-          Already have an account?
-          <a href="javascript:void(0)" class="text-primary fw-semibold" (click)="switchTab('login')">Sign in</a>
+        <p class="auth-switch-hint mt-4">
+          Already have an account?&nbsp;
+          <button type="button" class="auth-switch-link" (click)="switchTab('login')">Sign in</button>
         </p>
       }
 
-    </div>
+    </div><!-- /auth-form-box -->
 
-    <div class="card-footer text-center text-muted py-3 small">
-      FinVault &copy; 2026 — Your financial firewall.
-    </div>
-  </div>
+    <p class="auth-footer-note">FinVault &copy; 2026 &mdash; Your financial firewall.</p>
+  </div><!-- /auth-right -->
+
 </div>

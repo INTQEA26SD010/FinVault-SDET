@@ -35,6 +35,7 @@ export class SimulatorComponent implements OnInit {
 
   // ── Session ────────────────────────────────────────────────────────
   user: SessionUser | null = null;
+  sidebarOpen = false;
 
   private readonly cdr = inject(ChangeDetectorRef);
 
@@ -149,6 +150,9 @@ export class SimulatorComponent implements OnInit {
     this.alertType = '';
     this.alertMessage = '';
   }
+
+  toggleSidebar(): void { this.sidebarOpen = !this.sidebarOpen; }
+  closeSidebar(): void  { this.sidebarOpen = false; }
 
   logout(): void {
     this.authService.logout();

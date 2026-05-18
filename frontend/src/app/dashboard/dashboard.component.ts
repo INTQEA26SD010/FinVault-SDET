@@ -35,6 +35,7 @@ export class DashboardComponent implements OnInit {
 
   user: SessionUser | null = null;
   activeNav = 'dashboard';
+  sidebarOpen = false;
 
   private readonly destroyRef = inject(DestroyRef);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -87,6 +88,15 @@ export class DashboardComponent implements OnInit {
 
   get totalSpent(): number {
     return this.cards.reduce((sum, c) => sum + (c.balance || 0), 0);
+  }
+
+  get spentPercent(): number {
+    if (!this.totalLimit) return 0;
+    return Math.min(100, Math.round((this.totalSpent / this.totalLimit) * 100));
+  }
+
+  get totalTxAmount(): number {
+    return this.transactions.reduce((s, t) => s + (t.amount || 0), 0);
   }
 
   /** CSS gradient string for a virtual card at the given index (cycles through 5 themes). */
@@ -252,6 +262,9 @@ export class DashboardComponent implements OnInit {
     const card = this.cards.find(c => c.id === cardId);
     return card ? card.cardNumber.slice(-4) : '????';
   }
+
+  toggleSidebar(): void { this.sidebarOpen = !this.sidebarOpen; }
+  closeSidebar(): void  { this.sidebarOpen = false; }
 
   logout(): void {
     this.authService.logout();

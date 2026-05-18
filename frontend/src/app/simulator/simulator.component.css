@@ -4,6 +4,59 @@
    (each Angular component has its own shadow DOM scope).
    ═══════════════════════════════════════════════════════════ */
 
+/* ── Hamburger button (mobile only) ── */
+.fv-hamburger {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.fv-hamburger:hover { background: rgba(255, 255, 255, 0.07); }
+.fv-hamburger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.75);
+  border-radius: 2px;
+  transition: transform 0.22s ease, opacity 0.22s ease;
+}
+.fv-hamburger.is-open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.fv-hamburger.is-open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.fv-hamburger.is-open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* ── Mobile sidebar backdrop ── */
+.fv-mobile-overlay {
+  position: fixed;
+  inset: 60px 0 0 0;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 199;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  animation: fv-fade-in 0.2s ease;
+}
+@keyframes fv-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* ── Mobile close button inside drawer ── */
+.fv-mobile-close {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 2px 8px;
+  line-height: 1;
+  border-radius: 6px;
+  transition: color 0.15s;
+}
+.fv-mobile-close:hover { color: rgba(255, 255, 255, 0.8); }
+
 /* ── Shell ── */
 .fv-shell {
   background: #080e1a;
@@ -26,16 +79,33 @@
   letter-spacing: -0.5px;
 }
 
-/* ── Sidebar ── */
+/* ── Sidebar — mobile-first slide-over drawer ── */
 .fv-sidebar {
   width: 230px;
   background: #0d1526;
   border-right: 1px solid rgba(255, 255, 255, 0.055);
   flex-shrink: 0;
-  position: sticky;
-  top: 60px;
-  height: calc(100vh - 60px);
   overflow-y: auto;
+  display: flex;
+  /* Mobile: fixed panel, hidden off-screen left */
+  position: fixed;
+  top: 60px;
+  left: -260px;
+  height: calc(100vh - 60px);
+  z-index: 200;
+  transition: left 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.fv-sidebar.sidebar-open {
+  left: 0;
+}
+/* Desktop (md+): sticky in-flow sidebar, always visible */
+@media (min-width: 768px) {
+  .fv-sidebar {
+    position: sticky;
+    top: 60px;
+    left: 0;
+    z-index: auto;
+  }
 }
 .sidebar-item {
   display: flex;
@@ -149,6 +219,13 @@
   border-radius: 20px;
   padding: 36px 40px;
   max-width: 560px;
+}
+@media (max-width: 575.98px) {
+  .sim-card {
+    padding: 24px 20px;
+    max-width: 100%;
+    border-radius: 16px;
+  }
 }
 .sim-card-title {
   font-size: 1.05rem;
