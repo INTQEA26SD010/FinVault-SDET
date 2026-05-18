@@ -24,7 +24,7 @@ export interface TransactionResponse {
 
 @Injectable({ providedIn: 'root' })
 export class VirtualCardService {
-  private readonly baseUrl = 'http://localhost:8080/api';
+  private readonly baseUrl = 'http://localhost:8081/api';
 
   constructor(private http: HttpClient) {}
 

@@ -37,7 +37,7 @@ export interface SessionUser {
 })
 export class AuthService {
 
-  private readonly apiUrl = 'http://localhost:8080/api/auth';
+  private readonly apiUrl = 'http://localhost:8081/api/auth';
   private readonly SESSION_KEY = 'finvault_user';
 
   constructor(private http: HttpClient, private router: Router) {}
