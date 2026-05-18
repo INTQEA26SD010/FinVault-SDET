@@ -2,14 +2,13 @@
 <div class="fv-shell d-flex flex-column">
 
   <!-- ──────────── Navbar ──────────── -->
-  <nav class="fv-navbar d-flex align-items-center px-4 gap-3">
+  <nav class="fv-navbar d-flex align-items-center px-3 px-md-4 gap-2 gap-md-3">
+    <!-- Hamburger — visible only on mobile -->
+    <button type="button" class="fv-hamburger d-md-none"
+            (click)="toggleSidebar()" [class.is-open]="sidebarOpen" aria-label="Toggle navigation">
+      <span></span><span></span><span></span>
+    </button>
     <div class="fv-brand"><span style="color:#4f8ef7">Fin</span>Vault</div>
-    <span style="background:rgba(79,142,247,0.14);color:#4f8ef7;font-size:0.6rem;
-                 font-weight:700;letter-spacing:1.2px;padding:3px 8px;border-radius:20px;
-                 border:1px solid rgba(79,142,247,0.22);">PREMIUM</span>
-    <span style="background:rgba(250,204,21,0.13);color:#facc15;font-size:0.6rem;
-                 font-weight:700;letter-spacing:1.2px;padding:3px 8px;border-radius:20px;
-                 border:1px solid rgba(250,204,21,0.22);">QA TOOLS</span>
     <div class="ms-auto d-flex align-items-center gap-3">
       <span class="d-none d-sm-inline" style="color:rgba(255,255,255,0.38);font-size:0.82rem;">
         {{ user?.email }}
@@ -18,12 +17,18 @@
     </div>
   </nav>
 
+  <!-- Mobile sidebar backdrop -->
+  @if (sidebarOpen) {
+    <div class="fv-mobile-overlay d-md-none" (click)="closeSidebar()"></div>
+  }
+
   <div class="d-flex flex-grow-1">
 
     <!-- ──────────── Sidebar ──────────── -->
-    <aside class="fv-sidebar d-none d-md-flex flex-column py-4 px-3">
-      <div class="px-1 mb-3">
+    <aside class="fv-sidebar flex-column py-4 px-3" [class.sidebar-open]="sidebarOpen">
+      <div class="d-flex align-items-center justify-content-between px-1 mb-3">
         <div style="font-size:0.62rem;font-weight:700;letter-spacing:1.6px;color:rgba(255,255,255,0.2);">MENU</div>
+        <button type="button" class="fv-mobile-close d-md-none" (click)="closeSidebar()" aria-label="Close menu">&times;</button>
       </div>
       <div class="d-flex flex-column">
         <button type="button" class="sidebar-item" [routerLink]="['/dashboard']">
@@ -48,7 +53,7 @@
     </aside>
 
     <!-- ──────────── Main Content ──────────── -->
-    <main class="fv-main flex-grow-1 p-4 p-lg-5 overflow-auto">
+    <main class="fv-main flex-grow-1 p-3 p-md-4 p-lg-5 overflow-auto">
 
       <!-- Page header -->
       <div class="mb-5">
