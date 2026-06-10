@@ -25,6 +25,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { Router } from '@angular/router';
+import { environment } from '../../environments/environment';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // INTERFACES — TypeScript types that define the shape of data
@@ -102,9 +103,9 @@ export class AuthService {
   
   /**
    * Base URL for all auth-related API calls.
-   * Points to the Spring Boot backend running on port 8081.
+   * Centralized via `environment.apiUrl`.
    */
-  private readonly apiUrl = 'http://localhost:8081/api/auth';
+  private readonly apiUrl = `${environment.apiUrl}/auth`;
   
   /**
    * Key used to store/retrieve session data in browser's sessionStorage.

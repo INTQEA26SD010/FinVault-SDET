@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface VirtualCard {
   id: number;
@@ -24,7 +25,7 @@ export interface TransactionResponse {
 
 @Injectable({ providedIn: 'root' })
 export class VirtualCardService {
-  private readonly baseUrl = 'http://localhost:8081/api';
+  private readonly baseUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) {}
 
