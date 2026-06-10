@@ -6,19 +6,17 @@
       "src": "frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "frontend/dist/finvault-frontend"
+        "distDir": "dist/finvault-frontend"
       }
     }
   ],
-  "installCommand": "npm install --prefix frontend",
-  "buildCommand": "npm run build --prefix frontend",
   "routes": [
     {
       "src": "/api/(.*)",
       "dest": "https://finvault-sdet.onrender.com/api/$1"
     },
     { "handle": "filesystem" },
-    { "src": "/.*", "dest": "/index.html" }
+    { "src": "/(.*)", "dest": "/index.html" }
   ],
   "env": {
     "API_URL": "https://finvault-sdet.onrender.com/api"
