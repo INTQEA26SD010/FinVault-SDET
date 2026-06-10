@@ -6,34 +6,6 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// VIRTUAL CARD RESPONSE DTO — Data sent BACK to the frontend about a card.
-// ─────────────────────────────────────────────────────────────────────────────
-//
-// WHAT IS THIS FOR?
-// When the frontend asks "show me this user's cards", we don't want to send
-// the raw VirtualCard entity because it contains:
-//   - The full User object (password hash, etc.) — SECURITY RISK!
-//   - JPA metadata and relationships — unnecessary data
-//
-// Instead, we carefully pick ONLY the fields the frontend needs and put them
-// in this DTO. This is what the Angular frontend receives as JSON.
-//
-// EXAMPLE RESPONSE:
-// {
-//   "id": 3,
-//   "cardNumber": "4532789012345678",
-//   "cvv": "291",
-//   "dailyLimit": 500.00,
-//   "balance": 120.50,
-//   "status": "ACTIVE",
-//   "vendorName": "Amazon"
-// }
-//
-// NOTE: The cvv IS included here because the card owner should see it.
-// In a production app, you might hide it after initial creation.
-//
-// ─────────────────────────────────────────────────────────────────────────────
 
 @Data
 @NoArgsConstructor
