@@ -10,8 +10,11 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.util.List;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 
 
@@ -19,7 +22,9 @@ import java.util.List;
 @EnableWebSecurity   // Activates Spring Security's web security features
 public class SecurityConfig {
 
-    
+    @Value("${app.cors.allowed-origins:}")
+    private String allowedOriginsProp;
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -30,8 +35,20 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // Which frontend URLs are allowed to call our API
-        config.setAllowedOrigins(List.of("http://localhost:4200"));
+        // Read allowed origins from configuration (comma-separated). If empty,
+        // fall back to allowing any origin pattern. Avoid using literal "*"
+        // together with credentials.
+        List<String> allowedOrigins = Arrays.stream(allowedOriginsProp.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
+
+        if (allowedOrigins.isEmpty()) {
+            // Allow any origin pattern — use with caution in production
+            config.setAllowedOriginPatterns(List.of("*"));
+        } else {
+            config.setAllowedOrigins(allowedOrigins);
+        }
 
         // Which HTTP methods are allowed
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
