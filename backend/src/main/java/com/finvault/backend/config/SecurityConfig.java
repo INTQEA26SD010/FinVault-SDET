@@ -24,6 +24,8 @@ public class SecurityConfig {
 
     @Value("${app.cors.allowed-origins:}")
     private String allowedOriginsProp;
+    @Value("${app.cors.allowed-origin-patterns:}")
+    private String allowedOriginPatternsProp;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -35,19 +37,30 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // Read allowed origins from configuration (comma-separated). If empty,
-        // fall back to allowing any origin pattern. Avoid using literal "*"
-        // together with credentials.
+        // Read allowed origins and allowed origin patterns from configuration
         List<String> allowedOrigins = Arrays.stream(allowedOriginsProp.split(","))
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
                 .collect(Collectors.toList());
 
-        if (allowedOrigins.isEmpty()) {
-            // Allow any origin pattern — use with caution in production
-            config.setAllowedOriginPatterns(List.of("*"));
-        } else {
+        List<String> allowedPatterns = Arrays.stream(allowedOriginPatternsProp.split(","))
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
+
+        // Apply explicit origins if provided
+        if (!allowedOrigins.isEmpty()) {
             config.setAllowedOrigins(allowedOrigins);
+        }
+
+        // Apply origin patterns (useful for Vercel preview URLs)
+        if (!allowedPatterns.isEmpty()) {
+            config.setAllowedOriginPatterns(allowedPatterns);
+        }
+
+        // If neither configuration is provided, fall back to allowing localhost and render host
+        if (allowedOrigins.isEmpty() && allowedPatterns.isEmpty()) {
+            config.setAllowedOriginPatterns(List.of("http://localhost:4200", "https://*.vercel.app", "https://finvault-sdet.onrender.com"));
         }
 
         // Which HTTP methods are allowed
